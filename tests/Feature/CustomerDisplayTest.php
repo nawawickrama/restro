@@ -74,7 +74,41 @@ class CustomerDisplayTest extends TestCase
         $this->actingAs($this->cashier())->get(route('pos.home'))
             ->assertOk()
             ->assertSee('customerDisplayLauncher(')
-            ->assertSee(route('pos.display'));
+            ->assertSee('Open the customer display')
+            // The monitor glyph, so the control is never a bare empty circle.
+            ->assertSee('M9 17.25v1.007', false);
+    }
+
+    /**
+     * The launcher URL must carry no host.
+     *
+     * A terminal reaches the POS on whatever address it was set up with — a
+     * LAN IP, a hostname, localhost. A URL built from APP_URL opens a window
+     * pointed at a different machine, which presents as a blank white tab.
+     */
+    public function test_the_launcher_opens_a_host_relative_url(): void
+    {
+        config(['app.url' => 'http://some-other-host.test']);
+
+        $html = $this->actingAs($this->cashier())->get(route('pos.home'))->getContent();
+
+        preg_match('/customerDisplayLauncher\(\{ url: \'([^\']+)\'/', $html, $matches);
+
+        $this->assertNotEmpty($matches, 'The launcher should carry a URL.');
+        $this->assertSame('/pos/display', $matches[1]);
+        $this->assertStringNotContainsString('some-other-host', $html);
+    }
+
+    /** A blank screen facing the room is worse than a static logo. */
+    public function test_the_idle_screen_shows_without_javascript(): void
+    {
+        $html = $this->actingAs($this->cashier())->get(route('pos.display'))->getContent();
+
+        // The idle panel must not be hidden by x-cloak before Alpine boots.
+        preg_match('/<div x-show="screen === \'idle\'"([^>]*)>/', $html, $matches);
+
+        $this->assertNotEmpty($matches, 'The idle panel should be present.');
+        $this->assertStringNotContainsString('x-cloak', $matches[1]);
     }
 
     /** Landing on the POS home means nothing is being served: back to idle. */

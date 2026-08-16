@@ -27,14 +27,20 @@
     <div class="brand-wash pointer-events-none absolute inset-0"></div>
 
     {{-- ------------------------------------------------------------ IDLE --}}
+    {{-- Deliberately not x-cloaked: idle is the starting state, so this shows
+         immediately and keeps showing even if the scripts never boot. A blank
+         screen facing the room is worse than a static logo. --}}
     <div x-show="screen === 'idle'"
-         x-cloak
          class="relative flex flex-1 flex-col items-center justify-center gap-8 p-10 text-center">
         <img src="{{ asset('images/logo.png') }}"
              alt="{{ $settings->restaurantName() }}"
              class="w-[min(52vw,34rem)] drop-shadow-2xl">
 
-        <p class="text-[clamp(1.6rem,3.4vw,3rem)] font-semibold text-kd-gold" x-text="welcome"></p>
+        {{-- Rendered server-side too, so the welcome is on screen before
+             Alpine runs; x-text simply replaces it with the same value. --}}
+        <p class="text-[clamp(1.6rem,3.4vw,3rem)] font-semibold text-kd-gold" x-text="welcome">
+            {{ $settings->get('receipt_footer') ?: 'Welcome' }}
+        </p>
 
         <x-smile class="size-[clamp(3rem,6vw,5rem)] text-kd-gold/70"/>
 
