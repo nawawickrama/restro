@@ -53,7 +53,12 @@ export function createBus() {
 
     return {
         post(type, payload = null) {
-            const message = { type, payload };
+            // Alpine keeps component data behind a reactive Proxy, and the
+            // structured clone algorithm refuses to copy one — postMessage
+            // throws DataCloneError, which the order screen would surface as
+            // "connection lost". Everything sent here is plain data, so a JSON
+            // round trip strips the proxies and makes it cloneable.
+            const message = { type, payload: payload === null ? null : JSON.parse(JSON.stringify(payload)) };
 
             if (channel) {
                 channel.postMessage(message);

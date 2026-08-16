@@ -56,7 +56,10 @@ export default function customerDisplayLauncher({ url }) {
                 const { screens, currentScreen } = await window.getScreenDetails();
                 const target = screens.find((screen) => ! screen.isPrimary) ?? currentScreen;
 
-                return `popup=yes,left=${target.left},top=${target.top},`
+                // `fullscreen` is honoured once the terminal has granted the
+                // window-management permission, so the display comes up
+                // borderless on the right monitor with nobody pressing F11.
+                return `popup=yes,fullscreen=yes,left=${target.left},top=${target.top},`
                     + `width=${target.availWidth},height=${target.availHeight}`;
             } catch {
                 // Permission refused, or a browser without the API.

@@ -25,9 +25,18 @@ export default function posOrder({ order, categories, endpoints, currency }) {
             this.mirror();
         },
 
-        /** Push the current order to the customer-facing screen. */
+        /**
+         * Push the current order to the customer-facing screen.
+         *
+         * Wrapped defensively on purpose: the second screen is a courtesy, and
+         * nothing going wrong with it may ever stop the till taking an order.
+         */
         mirror() {
-            window.showOnCustomerDisplay?.({ screen: 'order', order: this.order });
+            try {
+                window.showOnCustomerDisplay?.({ screen: 'order', order: this.order });
+            } catch (error) {
+                console.warn('Customer display could not be updated.', error);
+            }
         },
 
         get items() {

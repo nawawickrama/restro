@@ -41,6 +41,31 @@ export default function customerDisplay({ restaurant, welcome }) {
             document.addEventListener('fullscreenchange', () => {
                 this.fullscreen = document.fullscreenElement !== null;
             });
+
+            this.claimFullscreen();
+        },
+
+        /**
+         * Get rid of the browser chrome without anybody pressing F11.
+         *
+         * Chrome opens the window fullscreen already when the terminal has
+         * granted the window-management permission. Failing that, a browser
+         * will only go fullscreen off the back of a user gesture, so the first
+         * touch or keypress anywhere on this screen is used — and the hint in
+         * the corner says so until it happens.
+         */
+        claimFullscreen() {
+            if (document.fullscreenElement) {
+                this.fullscreen = true;
+
+                return;
+            }
+
+            this.goFullscreen();
+
+            ['pointerdown', 'keydown'].forEach((event) => {
+                window.addEventListener(event, () => this.goFullscreen(), { once: true });
+            });
         },
 
         tick() {

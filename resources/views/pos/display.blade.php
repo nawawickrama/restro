@@ -80,6 +80,13 @@
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-[clamp(1.3rem,2.4vw,2rem)] font-semibold"
                                   x-text="item.name"></span>
+
+                            {{-- Unit price spelled out, as on any till display:
+                                 it lets the customer check the arithmetic
+                                 rather than take the line total on trust. --}}
+                            <span class="block text-[clamp(0.85rem,1.4vw,1.1rem)] text-kd-cream/50 tabular-nums"
+                                  x-text="`${item.quantity} × ${item.unit_price_formatted}`"></span>
+
                             <span x-show="item.note"
                                   class="block truncate text-[clamp(0.85rem,1.4vw,1.1rem)] text-kd-gold/80"
                                   x-text="item.note"></span>
