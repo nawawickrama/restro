@@ -68,6 +68,17 @@
 {{-- The receipt itself: 80mm thermal width, monospaced figures, no colour. --}}
 <div class="print-sheet mx-auto max-w-md bg-white p-6 text-slate-900 shadow-lg print:shadow-none">
     <header class="text-center">
+        {{-- A thermal head is one colour at low resolution, so the logo is
+             flattened to grey and pushed to high contrast rather than left to
+             dither into mud. Drop a black-and-white `logo-receipt.png` beside
+             it to override this with artwork made for paper. --}}
+        @php($receiptLogo = file_exists(public_path('images/logo-receipt.png')) ? 'images/logo-receipt.png' : 'images/logo.png')
+
+        <img src="{{ asset($receiptLogo) }}"
+             alt="{{ $settings->restaurantName() }}"
+             class="mx-auto mb-3 w-44 max-w-full"
+             style="filter: grayscale(1) contrast(1.35); print-color-adjust: exact; -webkit-print-color-adjust: exact;">
+
         <h1 class="text-xl font-bold uppercase">{{ $settings->restaurantName() }}</h1>
 
         @if ($settings->get('restaurant_address'))
@@ -218,7 +229,14 @@
         @if ($settings->get('receipt_footer'))
             <p>{{ $settings->get('receipt_footer') }}</p>
         @endif
+
         <p class="mt-2 text-xs text-slate-600">{{ now()->format('d M Y, g:i A') }}</p>
+
+        @if ($settings->get('software_credit'))
+            <p class="mt-2 border-t border-dashed border-slate-300 pt-2 text-xs text-slate-600">
+                {{ $settings->get('software_credit') }}
+            </p>
+        @endif
     </footer>
 </div>
 

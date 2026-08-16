@@ -26,6 +26,7 @@ class SettingController extends Controller
             'currency_symbol' => ['required', 'string', 'max:8'],
             'tax_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
             'receipt_footer' => ['nullable', 'string', 'max:255'],
+            'software_credit' => ['nullable', 'string', 'max:255'],
         ]);
 
         // Existing open orders keep the tax they were calculated with until

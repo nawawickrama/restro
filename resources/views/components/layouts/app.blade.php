@@ -11,8 +11,11 @@
 <div x-data="{ nav: false }" class="min-h-screen lg:flex">
     <header class="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-200 bg-white/90
                    px-4 py-3 backdrop-blur lg:hidden dark:border-slate-800 dark:bg-slate-900/90">
-        <a href="{{ route('dashboard') }}" class="text-lg font-bold text-slate-900 dark:text-white">
-            {{ $settings->restaurantName() }}
+        <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-2">
+            <img src="{{ asset('images/logo.png') }}" alt="" class="h-9 w-auto shrink-0">
+            <span class="truncate text-lg font-bold text-slate-900 dark:text-white">
+                {{ $settings->restaurantName() }}
+            </span>
         </a>
 
         <x-btn type="button" variant="ghost" size="sm" x-on:click="nav = !nav" aria-label="Toggle navigation">
@@ -27,11 +30,13 @@
          class="w-full shrink-0 border-b border-slate-200 bg-white p-4 lg:block! lg:w-72 lg:border-r lg:border-b-0
                 dark:border-slate-800 dark:bg-slate-900">
         <div class="hidden lg:block">
-            <a href="{{ route('dashboard') }}" class="block px-2 pb-6">
-                <span class="block text-xl font-bold text-slate-900 dark:text-white">
-                    {{ $settings->restaurantName() }}
+            <a href="{{ route('dashboard') }}" class="block px-2 pt-2 pb-6 text-center">
+                <img src="{{ asset('images/logo.png') }}"
+                     alt="{{ $settings->restaurantName() }}"
+                     class="mx-auto w-40 max-w-full">
+                <span class="mt-3 block text-sm font-medium text-slate-500 dark:text-slate-400">
+                    Point of sale
                 </span>
-                <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Point of sale</span>
             </a>
         </div>
 

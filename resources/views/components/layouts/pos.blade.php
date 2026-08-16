@@ -18,6 +18,10 @@
             </x-btn>
         @endif
 
+        <img src="{{ asset('images/logo.png') }}"
+             alt="{{ $settings->restaurantName() }}"
+             class="hidden h-10 w-auto shrink-0 sm:block">
+
         <div class="min-w-0 flex-1">
             <p class="truncate text-xl font-bold text-slate-900 sm:text-2xl dark:text-white">
                 {{ $heading ?? $settings->restaurantName() }}

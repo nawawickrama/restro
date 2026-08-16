@@ -21,6 +21,7 @@ class SettingsService
         'currency_symbol' => 'Rs.',
         'tax_percentage' => '0',
         'receipt_footer' => 'Thank you. Please come again!',
+        'software_credit' => 'Software By - Nawawickrama (0779389533)',
     ];
 
     /** @return array<string, string> */

@@ -36,7 +36,12 @@
                             @method($method)
                         @endif
                         {{ $slot }}
-                        <x-btn :variant="$variant" size="lg" class="w-full">{{ $confirm }}</x-btn>
+
+                        {{-- Solid here on purpose: the trigger is a quiet
+                             outline, and this is the deliberate final press. --}}
+                        <x-btn :variant="$variant === 'danger' ? 'danger-solid' : $variant"
+                               size="lg"
+                               class="w-full">{{ $confirm }}</x-btn>
                     </form>
 
                     <x-btn type="button" variant="secondary" size="lg" x-on:click="open = false" class="sm:flex-1">

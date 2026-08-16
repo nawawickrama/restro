@@ -62,9 +62,19 @@
                     Receipt
                 </legend>
 
-                <x-field label="Receipt footer" name="receipt_footer" hint="The thank-you line at the bottom of the receipt.">
-                    <x-input name="receipt_footer" :value="old('receipt_footer', $values['receipt_footer'])"/>
-                </x-field>
+                <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-6">
+                    <x-field label="Receipt footer" name="receipt_footer"
+                             hint="The thank-you line at the bottom of the receipt."
+                             class="xl:col-span-3">
+                        <x-input name="receipt_footer" :value="old('receipt_footer', $values['receipt_footer'])"/>
+                    </x-field>
+
+                    <x-field label="Software credit" name="software_credit"
+                             hint="Printed in small type at the very bottom. Leave blank to omit it."
+                             class="xl:col-span-3">
+                        <x-input name="software_credit" :value="old('software_credit', $values['software_credit'] ?? '')"/>
+                    </x-field>
+                </div>
             </fieldset>
 
             <div class="border-t border-slate-100 pt-6 dark:border-slate-800">

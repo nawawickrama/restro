@@ -5,9 +5,12 @@
 </head>
 <body class="flex min-h-full items-center justify-center p-4">
 <div class="w-full max-w-md space-y-6">
-    <div class="text-center">
-        <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{{ $settings->restaurantName() }}</h1>
-        <p class="mt-2 text-base text-slate-500 dark:text-slate-400">Sign in to start taking orders</p>
+    <div class="flex flex-col items-center text-center">
+        <img src="{{ asset('images/logo.png') }}"
+             alt="{{ $settings->restaurantName() }}"
+             class="w-56 max-w-full">
+
+        <p class="mt-4 text-base text-slate-500 dark:text-slate-400">Sign in to start taking orders</p>
     </div>
 
     <x-card>
