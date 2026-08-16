@@ -24,6 +24,14 @@
     --color-brand-700: oklch(0.46 0.18 257);
     --color-brand-800: oklch(0.39 0.15 257);
     --color-brand-900: oklch(0.33 0.12 257);
+
+    /* Brand colours, sampled from the restaurant's own logo. Used only on the
+       customer-facing display — the screen the public actually looks at — so
+       it reads as the restaurant rather than as software. */
+    --color-kd-red: #cc2418;
+    --color-kd-gold: #fcc000;
+    --color-kd-cream: #fcfcfc;
+    --color-kd-ink: #17100e;
 }
 
 @layer base {
@@ -142,6 +150,23 @@
     .field-control[type='search']::-webkit-search-cancel-button,
     .field-control[type='search']::-webkit-search-decoration {
         appearance: none;
+    }
+
+    /* The customer display's backdrop: a soft wash of the restaurant's red and
+       gold, so the screen is never flat black. Built from the brand tokens so
+       the colours have one definition. */
+    .brand-wash {
+        background:
+            radial-gradient(
+                90rem 60rem at 15% -20%,
+                color-mix(in srgb, var(--color-kd-red) 32%, transparent),
+                transparent 60%
+            ),
+            radial-gradient(
+                70rem 50rem at 110% 120%,
+                color-mix(in srgb, var(--color-kd-gold) 14%, transparent),
+                transparent 60%
+            );
     }
 
     /* Tick boxes, sized to be hit with a finger rather than a mouse pointer. */

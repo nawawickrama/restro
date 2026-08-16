@@ -19,6 +19,17 @@ export default function posOrder({ order, categories, endpoints, currency }) {
         noteFor: null,
         noteText: '',
 
+        init() {
+            // Mirror the order onto the customer's screen straight away, so a
+            // display opened mid-order catches up rather than showing idle.
+            this.mirror();
+        },
+
+        /** Push the current order to the customer-facing screen. */
+        mirror() {
+            window.showOnCustomerDisplay?.({ screen: 'order', order: this.order });
+        },
+
         get items() {
             const term = this.search.trim().toLowerCase();
 
@@ -122,6 +133,7 @@ export default function posOrder({ order, categories, endpoints, currency }) {
                 }
 
                 this.order = payload.order;
+                this.mirror();
             } catch {
                 this.error = 'Connection lost. Check the network and try again.';
             } finally {

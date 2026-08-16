@@ -13,7 +13,10 @@
         </x-btn>
     </x-slot:actions>
 
-    <div class="h-full overflow-y-auto p-4 sm:p-6">
+    {{-- No order is being served from this screen, so the customer's display
+         returns to the welcome state. --}}
+    <div x-init="window.showOnCustomerDisplay?.({ screen: 'idle' })"
+         class="h-full overflow-y-auto p-4 sm:p-6">
         <div class="mx-auto max-w-6xl space-y-8">
             <div class="space-y-4">
                 <x-flash/>

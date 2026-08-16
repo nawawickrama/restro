@@ -96,6 +96,11 @@ checkout; the name is optional. Pending → Ready → Collected tracks them whil
 **Food photos** — Menu items take an optional picture, shown on the POS tile. Items without one
 still work exactly the same.
 
+**Customer display** — A second screen facing the customer, in the restaurant's own colours. It
+shows each item as it is rung up, the running total, the change due during a cash payment, and a
+thank-you with the order number afterwards. Between sales it rests on the logo and a welcome
+line. See [Setting up the customer display](#setting-up-the-customer-display).
+
 **Checkout** — Cash with live change and quick-tender buttons, or card with an optional
 reference. Nothing completes without a payment that covers the total.
 
@@ -120,6 +125,42 @@ name, so new roles are a settings change rather than a code change.
 Dark mode is included and remembered per terminal.
 
 ---
+
+## Setting up the customer display
+
+The customer display is a second browser window on the **same computer**, driven by the
+cashier's window over a `BroadcastChannel`. No server, no polling, nothing extra to run.
+
+**The screens must be extended, not mirrored.** On macOS, System Settings → Displays, with
+*Mirror Displays* switched off. Mirrored screens show identical pixels, so the customer would be
+looking at the cashier's own screen.
+
+**Day to day:** tap **Display** in the POS header once at the start of the shift. In Chrome or
+Edge the browser will ask permission to manage windows the first time; allow it, and from then on
+the window opens on the second monitor by itself. The dot on the button turns green while the
+display is running. Tap the display once to clear the browser chrome.
+
+The window stays put while the cashier moves between POS screens, so it is opened once a day,
+not once an order.
+
+**For a permanent terminal**, skip the button entirely with a desktop shortcut that launches
+Chrome straight onto the second screen with no browser chrome at all:
+
+```bash
+open -na "Google Chrome" --args --new-window \
+  --app=http://localhost/pos/display \
+  --window-position=1920,0 --start-fullscreen
+```
+
+Set `--window-position` to the second screen's top-left corner (`1920,0` if the primary is
+1920 wide and the second sits to its right).
+
+**Browser support:** automatic placement needs Chrome or Edge — Safari has no Window Management
+API, so there the window opens on the primary screen and has to be moved once, or launched from
+the shortcut above. Everything else works in any current browser.
+
+**The logo** lives at `public/images/logo.png`. Replace that file to rebrand the display; nothing
+else needs changing.
 
 ## Project layout
 

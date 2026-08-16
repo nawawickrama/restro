@@ -140,6 +140,35 @@ symbol or thousands separator so a spreadsheet can sum them, and any cell beginn
 `-` or `@` is prefixed with an apostrophe. Menu item names are typed by staff, and Excel runs a
 leading `=` as a formula.
 
+### Phase 13 — Customer display
+
+`Pos\CustomerDisplayController`, `resources/views/pos/display.blade.php`,
+`resources/js/display-channel.js`, `resources/js/customer-display.js`.
+
+A second screen facing the customer, in the restaurant's own colours — sampled from its logo,
+which is the only place in the app that departs from the POS greys, because it is the only
+screen the public sees. Four states: idle (logo and welcome), building (each line as it is rung
+up, total pinned so it never scrolls away), paying (total, and the change in the largest type on
+the screen), done (thank you, and the number to wait for on a takeaway).
+
+**It is a mirror, not a second terminal.** No controls, so it cannot be put into a state nobody
+asked for. It carries no order data in its own HTML either — a screen left running overnight
+cannot leak the last customer's name.
+
+**How the screens stay in sync.** The cashier's window already holds the order exactly as the
+server last returned it, so it broadcasts that same payload over a `BroadcastChannel` — same
+browser, same terminal, no server round trip, no websocket daemon to supervise. The display can
+never show a total the server did not calculate. A display opened or refreshed mid-order asks
+for the current state and catches up; if it stops answering its heartbeat, the POS button stops
+claiming it is connected.
+
+Polling was rejected as it needs a terminal concept that does not exist and lags visibly;
+websockets as a daemon to run and restart for a screen sitting 40cm from the one driving it.
+
+**Placement.** Chrome and Edge expose the physical screen layout, so the window opens on the
+second monitor at its exact bounds with no dragging. The window carries a fixed name, so moving
+between POS screens reuses it rather than opening another.
+
 ### Phase 12 — Settings and UI polish
 
 `Admin\SettingController` + `app/Services/SettingsService.php` (cached key/value store).

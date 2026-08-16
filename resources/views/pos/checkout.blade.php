@@ -95,6 +95,27 @@
                                 return `{{ $settings->currencySymbol() }} ${Number(amount).toLocaleString(undefined, {
                                     minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                             },
+
+                            /* Mirror the payment as it is keyed in, so the
+                               customer watches their change being worked out
+                               rather than being told the result. */
+                            mirror() {
+                                window.showOnCustomerDisplay?.({
+                                    screen: 'paying',
+                                    payment: {
+                                        method: this.method,
+                                        total: this.money(this.total),
+                                        tendered: this.money(this.tendered),
+                                        change: this.money(this.change),
+                                    },
+                                });
+                            },
+
+                            init() {
+                                this.mirror();
+                                this.$watch('method', () => this.mirror());
+                                this.$watch('tendered', () => this.mirror());
+                            },
                         }">
                     <form action="{{ route('pos.orders.checkout.store', $order) }}" method="POST" class="space-y-5">
                         @csrf

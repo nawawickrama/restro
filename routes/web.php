@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\Pos\CheckoutController;
+use App\Http\Controllers\Pos\CustomerDisplayController;
 use App\Http\Controllers\Pos\OrderScreenController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ReportController;
@@ -35,6 +36,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     // ---------------------------------------------------------------- POS ---
     Route::middleware('permission:'.Permissions::VIEW_POS)->prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [PosController::class, 'home'])->name('home');
+
+        // The second screen. Opened once per shift and left running; it is fed
+        // by the cashier's window rather than by this route.
+        Route::get('display', CustomerDisplayController::class)->name('display');
 
         Route::post('tables/{table}', [PosController::class, 'selectTable'])->name('tables.select');
         Route::post('takeaway', [PosController::class, 'storeTakeaway'])->name('takeaway.store');

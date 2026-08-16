@@ -1,5 +1,21 @@
 @php
     $justCompleted = session()->has('status');
+    $payment = $order->payments->last();
+
+    // Only a sale that has just gone through belongs on the customer's screen.
+    // Reprinting an old receipt from history must not throw a "Thank you" up
+    // in front of whoever is standing at the counter now.
+    $displayState = $justCompleted ? [
+        'screen' => 'done',
+        'completed' => [
+            'paid' => money($order->total),
+            'method' => $payment?->method->label(),
+            'change' => money($payment?->change_amount ?? 0),
+            'change_due' => (float) ($payment?->change_amount ?? 0) > 0,
+            // Only a takeaway customer waits to be called.
+            'collect' => $order->type->usesTable() ? null : $order->order_number,
+        ],
+    ] : null;
 @endphp
 
 <!DOCTYPE html>
@@ -8,6 +24,15 @@
     @include('layouts.partials.head', ['title' => 'Receipt '.$order->order_number])
 </head>
 <body class="min-h-full bg-slate-200 py-6 dark:bg-slate-950">
+
+{{-- Handed to the customer's screen on load. Kept as a data island rather than
+     inline script so it stays readable in the page — useful when setting a
+     terminal up — and carries no executable code. --}}
+@if ($displayState)
+    <script type="application/json" id="customer-display-state">
+        {!! json_encode($displayState, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+@endif
 
 {{-- Screen-only controls, kept on one horizontal row at every width so the
      receipt below never gets pushed down the page. Everything below prints. --}}

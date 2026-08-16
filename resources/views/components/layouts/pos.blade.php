@@ -31,6 +31,8 @@
             <div class="flex items-center gap-2">{{ $actions }}</div>
         @endisset
 
+        <x-customer-display-button/>
+
         <button type="button"
                 x-data="themeToggle"
                 x-on:click="toggle()"
