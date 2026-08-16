@@ -15,6 +15,7 @@
 /auth.json
 /node_modules
 /public/build
+/public/build.zip
 
 # Menu photos uploaded by staff. These belong to the running restaurant, not
 # to the source: a clone should start with an empty gallery.

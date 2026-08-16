@@ -175,6 +175,9 @@
                         <dt class="text-slate-500 dark:text-slate-400">Customer</dt>
                         <dd class="font-semibold text-slate-900 dark:text-white">{{ $order->customer_name }}</dd>
                     </div>
+                @endif
+
+                @if ($order->customer_phone)
                     <div class="flex items-center justify-between gap-3">
                         <dt class="text-slate-500 dark:text-slate-400">Mobile</dt>
                         <dd class="font-semibold text-slate-900 dark:text-white">{{ $order->customer_phone }}</dd>

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Order;
+use App\Models\RestaurantTable;
 use App\Queries\OrderHistoryFilters;
 use App\Queries\OrderHistoryQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -278,6 +279,24 @@ class OrderHistoryTest extends TestCase
         $this->assertSame(4, $summary['orders']);
         $this->assertSame(2, $summary['completed']);
         $this->assertSame(1500.0, $summary['revenue']);
+    }
+
+    /**
+     * Regression: `customerLabel()` used `$this->table`, which inside an
+     * Eloquent model is the protected database-table-name property rather than
+     * the relationship. Every dine-in order in this column read "No table".
+     */
+    public function test_the_listing_shows_the_table_name_for_a_dine_in_order(): void
+    {
+        $cashier = $this->cashier();
+        $table = RestaurantTable::factory()->create(['name' => 'Table 9']);
+
+        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+
+        $this->actingAs($this->admin())->get(route('orders.index', ['range' => 'all']))
+            ->assertOk()
+            ->assertSee('Table 9')
+            ->assertDontSee('No table');
     }
 
     public function test_the_table_renders_with_sortable_headings(): void

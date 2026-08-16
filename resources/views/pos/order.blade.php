@@ -202,9 +202,7 @@
 
                 {{-- Totals and the two actions that end the screen --}}
                 <div class="shrink-0 space-y-4 border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                    @if ($order->type->requiresCustomer())
-                        @include('pos.partials.customer-details')
-                    @endif
+                    @include('pos.partials.customer-details')
 
                     <dl class="space-y-1 text-base">
                         <div class="flex justify-between text-slate-600 dark:text-slate-300">

@@ -77,11 +77,16 @@
             </div>
         @endif
 
+        {{-- Either detail can stand alone: a caller may give only a number, a
+             walk-in only a name. --}}
         @if ($order->customer_name)
             <div class="flex justify-between">
                 <dt class="font-semibold">Customer</dt>
                 <dd>{{ $order->customer_name }}</dd>
             </div>
+        @endif
+
+        @if ($order->customer_phone)
             <div class="flex justify-between">
                 <dt class="font-semibold">Mobile</dt>
                 <dd class="font-mono">{{ $order->customer_phone }}</dd>

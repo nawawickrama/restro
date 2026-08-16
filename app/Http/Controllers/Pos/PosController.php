@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Pos;
 use App\Enums\FulfillmentStatus;
 use App\Enums\OrderType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePhoneOrderRequest;
+use App\Http\Requests\OrderCustomerRequest;
 use App\Models\Order;
 use App\Models\RestaurantTable;
 use App\Models\User;
@@ -91,7 +91,7 @@ class PosController extends Controller
         return redirect()->route('pos.orders.show', $order);
     }
 
-    public function updateCustomer(StorePhoneOrderRequest $request, Order $order): RedirectResponse
+    public function updateCustomer(OrderCustomerRequest $request, Order $order): RedirectResponse
     {
         $this->authorize('update', $order);
 

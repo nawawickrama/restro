@@ -262,6 +262,87 @@ class BusinessRulesTest extends TestCase
         $this->assertSame(OrderStatus::Completed, $order->status);
     }
 
+    /**
+     * Dine-in and takeaway can carry a name and a number too — a table leaving
+     * a callback number, a walk-in wanting their name called. Neither is
+     * required, and an order completes perfectly well without them.
+     */
+    public function test_dine_in_and_takeaway_can_carry_optional_customer_details(): void
+    {
+        $user = $this->cashier();
+
+        $dineIn = $this->orders->startDineIn(RestaurantTable::factory()->create(['name' => 'Table 7']), $user);
+        $this->orders->setCustomer($dineIn, ['customer_name' => 'Nimal', 'customer_phone' => '0771234567']);
+
+        $takeaway = $this->orders->startTakeaway($user);
+        $this->orders->setCustomer($takeaway, ['customer_name' => 'Kamala']);
+
+        $dineIn->refresh();
+        $takeaway->refresh();
+
+        $this->assertSame('Nimal', $dineIn->customer_name);
+        $this->assertSame('0771234567', $dineIn->customer_phone);
+
+        $this->assertSame('Kamala', $takeaway->customer_name);
+        $this->assertNull($takeaway->customer_phone);
+
+        // Neither is a phone order, so neither is blocked from checkout.
+        $this->assertFalse($dineIn->needsCustomerPhone());
+        $this->assertFalse($takeaway->needsCustomerPhone());
+    }
+
+    public function test_customer_details_are_optional_on_a_takeaway_checkout(): void
+    {
+        $user = $this->cashier();
+        $order = $this->orders->startTakeaway($user);
+        $this->orders->addItem($order, MenuItem::factory()->create(['price' => 300]));
+
+        $this->checkout->checkout($order, PaymentMethod::Cash, $user, 300);
+
+        $order->refresh();
+        $this->assertSame(OrderStatus::Completed, $order->status);
+        $this->assertNull($order->customer_name);
+        $this->assertFalse($order->hasCustomerDetails());
+    }
+
+    public function test_a_dine_in_order_keeps_the_table_as_its_identity(): void
+    {
+        $user = $this->cashier();
+        $order = $this->orders->startDineIn(RestaurantTable::factory()->create(['name' => 'Table 7']), $user);
+
+        $order->load('table');
+        $this->assertSame('Table 7', $order->customerLabel());
+
+        $this->orders->setCustomer($order, ['customer_name' => 'Nimal']);
+
+        // The name is appended, never replaces the table staff refer to.
+        $this->assertSame('Table 7 · Nimal', $order->fresh()->load('table')->customerLabel());
+    }
+
+    public function test_a_named_walk_in_is_labelled_by_name(): void
+    {
+        $order = $this->orders->startTakeaway($this->cashier());
+
+        $this->assertSame('Walk in', $order->customerLabel());
+
+        $this->orders->setCustomer($order, ['customer_name' => 'Kamala']);
+
+        $this->assertSame('Kamala', $order->fresh()->customerLabel());
+    }
+
+    /** Blank details are stored as null, so "no name" is one value, not three. */
+    public function test_blank_customer_details_are_stored_as_null(): void
+    {
+        $order = $this->orders->startTakeaway($this->cashier());
+
+        $this->orders->setCustomer($order, ['customer_name' => '   ', 'customer_phone' => '']);
+
+        $order->refresh();
+        $this->assertNull($order->customer_name);
+        $this->assertNull($order->customer_phone);
+        $this->assertFalse($order->hasCustomerDetails());
+    }
+
     public function test_a_phone_order_cannot_be_completed_without_a_mobile_number(): void
     {
         $user = $this->cashier();

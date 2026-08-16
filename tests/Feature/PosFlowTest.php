@@ -144,6 +144,56 @@ class PosFlowTest extends TestCase
         $this->assertSame('Collecting at 7pm', $order->note);
     }
 
+    /** The number is required on a phone order and optional on the other two. */
+    public function test_customer_details_are_optional_on_dine_in_and_takeaway(): void
+    {
+        $cashier = $this->cashier();
+        $table = RestaurantTable::factory()->create();
+
+        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $dineIn = Order::query()->sole();
+
+        // A name alone is accepted; no number needed.
+        $this->actingAs($cashier)->post(route('pos.orders.customer', $dineIn), [
+            'customer_name' => 'Nimal',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame('Nimal', $dineIn->fresh()->customer_name);
+
+        // Saving nothing at all is fine too.
+        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $takeaway = Order::query()->latest('id')->first();
+
+        $this->actingAs($cashier)->post(route('pos.orders.customer', $takeaway), [])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($takeaway->fresh()->customer_phone);
+    }
+
+    public function test_the_order_screen_offers_customer_details_on_every_type(): void
+    {
+        $cashier = $this->cashier();
+        $table = RestaurantTable::factory()->create();
+
+        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $dineIn = Order::query()->sole();
+
+        $this->actingAs($cashier)->get(route('pos.orders.show', $dineIn))
+            ->assertOk()
+            ->assertSee('Add customer details')
+            ->assertSee('(optional)')
+            // The mandatory phone-order prompt must not appear here.
+            ->assertDontSee('Needed before checkout');
+
+        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $phone = Order::query()->latest('id')->first();
+
+        $this->actingAs($cashier)->get(route('pos.orders.show', $phone))
+            ->assertOk()
+            ->assertSee('Needed before checkout');
+    }
+
     public function test_a_phone_order_moves_through_its_collection_stages(): void
     {
         $cashier = $this->cashier();

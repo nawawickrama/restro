@@ -92,27 +92,32 @@ class OrderService
     }
 
     /**
-     * Record who is collecting a phone order.
+     * Record who the order is for.
      *
-     * The mobile number is the part that matters — it is how the counter finds
-     * the customer when they arrive. A name is welcome but optional, since
-     * plenty of callers never give one.
+     * Every order type can carry a name and a number: a dine-in table may leave
+     * a number for a callback, a walk-in may want their name called when the
+     * food is up. All of it is optional, and the validation layer enforces the
+     * one exception — a phone order must have a number (business rule 13).
      *
-     * @param  array{customer_phone: string, customer_name?: string|null, note?: string|null}  $customer
+     * @param  array{customer_phone?: string|null, customer_name?: string|null, note?: string|null}  $customer
      */
     public function setCustomer(Order $order, array $customer): void
     {
         $this->assertEditable($order);
 
-        if ($order->type !== OrderType::PhoneTakeaway) {
-            throw new PosOperationException('Only phone orders keep customer details.');
-        }
-
         $order->forceFill([
-            'customer_phone' => $customer['customer_phone'],
-            'customer_name' => filled($customer['customer_name'] ?? null) ? $customer['customer_name'] : null,
-            'note' => filled($customer['note'] ?? null) ? $customer['note'] : null,
+            'customer_phone' => $this->cleaned($customer['customer_phone'] ?? null),
+            'customer_name' => $this->cleaned($customer['customer_name'] ?? null),
+            'note' => $this->cleaned($customer['note'] ?? null),
         ])->save();
+    }
+
+    /** Blank details are stored as null, so "no name" is one value, not three. */
+    private function cleaned(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 
     /**

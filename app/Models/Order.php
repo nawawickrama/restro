@@ -99,15 +99,32 @@ class Order extends Model
      * What to show in the "table / customer" column of a listing.
      *
      * A phone caller often gives a number and no name, so the number stands in
-     * for one — it is what the counter will use to find them anyway.
+     * for one — it is what the counter will use to find them anyway. Dine-in
+     * keeps the table as its identity and appends a name only when one was
+     * taken, since the table is how staff refer to it.
      */
     public function customerLabel(): string
     {
+        $name = trim((string) $this->customer_name);
+
+        // Eloquent's Model declares `protected $table` for the database table
+        // name, so inside this class `$this->table` is that string, not the
+        // relationship — it reads as null and every dine-in order would be
+        // labelled "No table". From outside the model `$order->table` is fine,
+        // because __get only runs for inaccessible properties.
+        $diningTable = $this->getRelationValue('table');
+
         return match ($this->type) {
-            OrderType::DineIn => $this->table?->name ?? 'No table',
-            OrderType::PhoneTakeaway => $this->customer_name ?: ($this->customer_phone ?: 'Phone customer'),
-            OrderType::Takeaway => 'Walk in',
+            OrderType::DineIn => trim(($diningTable?->name ?? 'No table').($name !== '' ? " · {$name}" : '')),
+            OrderType::PhoneTakeaway => $name !== '' ? $name : ($this->customer_phone ?: 'Phone customer'),
+            OrderType::Takeaway => $name !== '' ? $name : 'Walk in',
         };
+    }
+
+    /** True once any customer detail has been recorded. */
+    public function hasCustomerDetails(): bool
+    {
+        return filled($this->customer_name) || filled($this->customer_phone);
     }
 
     /** Business rule 13: a phone order cannot be completed without a number. */
