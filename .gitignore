@@ -14,7 +14,11 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
+
+# Note: /public/build is deliberately NOT ignored. The restaurant runs on
+# shared hosting with no Node, so the compiled CSS, JS and fonts have to ship
+# with the repository. After changing anything in resources/, run
+# `npm run build` and commit the result — see the README.
 /public/build.zip
 
 # Menu photos uploaded by staff. These belong to the running restaurant, not

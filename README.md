@@ -126,6 +126,41 @@ Dark mode is included and remembered per terminal.
 
 ---
 
+## Deploying to shared hosting
+
+**The compiled assets are committed on purpose.** `public/build` is normally gitignored in a
+Laravel project, because you build on the server or in CI. This restaurant runs on shared hosting
+with no Node, so the CSS, JS and fonts ship with the repository and the server needs nothing but
+PHP and MySQL.
+
+The trade this makes: **anything changed under `resources/` needs a rebuild committed alongside
+it.** Change a Blade file only and nothing is needed; change CSS or JS and the deployed site keeps
+serving the old bundle until you do:
+
+```bash
+npm run build
+git add public/build && git commit -m "Rebuild assets"
+```
+
+Vite empties the folder each build, so old hashed files are removed by the same commit.
+
+On the server, after pulling:
+
+```bash
+php artisan migrate --force
+php artisan view:clear        # compiled Blade caches URLs; always clear it
+php artisan config:clear
+```
+
+**Menu photos need the storage symlink.** `php artisan storage:link` over SSH is easiest. If the
+host gives you no shell, create it from a one-off PHP file in `public/`, then delete the file:
+
+```php
+<?php symlink(__DIR__.'/../storage/app/public', __DIR__.'/storage');
+```
+
+Set `APP_URL` to the real address and `APP_DEBUG=false` before going live.
+
 ## Setting up the customer display
 
 The customer display is a second browser window on the **same computer**, driven by the
