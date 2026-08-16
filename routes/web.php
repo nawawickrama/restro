@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\RestaurantTableController;
 use App\Http\Controllers\Admin\SettingController;
@@ -89,6 +90,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::middleware('permission:'.Permissions::MANAGE_USERS)
         ->resource('users', UserController::class)
         ->except('show');
+
+    Route::middleware('permission:'.Permissions::MANAGE_CUSTOMERS)
+        ->resource('customers', CustomerController::class);
 
     Route::middleware('permission:'.Permissions::MANAGE_SETTINGS)->group(function () {
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');

@@ -140,6 +140,34 @@ symbol or thousands separator so a spreadsheet can sum them, and any cell beginn
 `-` or `@` is prefixed with an apostrophe. Menu item names are typed by staff, and Excel runs a
 leading `=` as a formula.
 
+### Phase 14 — Customers
+
+`Admin\CustomerController`, `Customer`, `CustomerSource`, `CustomerQuery`, `CustomerFilters`.
+
+Customers were deliberately left off the original build — details lived inline on each order and
+nothing more. They are now records of their own: a list with filters for how each one was met
+(walk in, dine in, phone call, added manually), search by name or number, sortable columns for
+orders / last visit / total spent, and a detail page with their order history.
+
+**The number is the identity.** A name cannot tell two people apart and plenty of customers never
+give one, so a record is only started when a mobile number is taken. The number is stored twice —
+as typed, and reduced to digits with a unique index on it — so "077 123 4567" and "0771234567" are
+recognised as one person rather than two.
+
+**Orders keep their own copy of the name and number**, exactly like item prices. Renaming a
+customer, or deleting them outright, must never rewrite a past receipt; deleting a record drops
+the link and leaves every order intact.
+
+**The source is written once and never rewritten.** A caller who later eats in was still met over
+the phone, and rewriting that would destroy the only answer to "where do our regulars come from?"
+
+The migration backfills the whole thing from orders already taken, so the module opens with the
+restaurant's real history rather than an empty list.
+
+Figures are counted and totalled in SQL (`withCount` / `withSum` / `withMax`), and paging,
+sorting and filtering all happen in the database — the same shape as the order history, for the
+same reason.
+
 ### Phase 13 — Customer display
 
 `Pos\CustomerDisplayController`, `resources/views/pos/display.blade.php`,

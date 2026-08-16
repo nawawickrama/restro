@@ -32,6 +32,13 @@ final class Permissions
 
     public const MANAGE_USERS = 'manage_users';
 
+    /**
+     * The customer list is the one place every number the restaurant holds sits
+     * together, so it is a management permission rather than part of the POS.
+     * Grant it to a cashier from the users screen if they need lookups.
+     */
+    public const MANAGE_CUSTOMERS = 'manage_customers';
+
     public const MANAGE_SETTINGS = 'manage_settings';
 
     public const VIEW_REPORTS = 'view_reports';
@@ -51,6 +58,7 @@ final class Permissions
             self::MANAGE_MENU,
             self::MANAGE_TABLES,
             self::MANAGE_USERS,
+            self::MANAGE_CUSTOMERS,
             self::MANAGE_SETTINGS,
             self::VIEW_REPORTS,
         ];

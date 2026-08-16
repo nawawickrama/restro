@@ -80,6 +80,12 @@
                 </x-nav-link>
             @endcan
 
+            @can(\App\Support\Permissions::MANAGE_CUSTOMERS)
+                <x-nav-link :href="route('customers.index')" icon="users" :active="request()->routeIs('customers.*')">
+                    Customers
+                </x-nav-link>
+            @endcan
+
             @can(\App\Support\Permissions::MANAGE_USERS)
                 <x-nav-link :href="route('users.index')" icon="users" :active="request()->routeIs('users.*')">
                     Users

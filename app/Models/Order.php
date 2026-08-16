@@ -20,7 +20,7 @@ class Order extends Model
 
     protected $fillable = [
         'order_number', 'type', 'status', 'fulfillment_status', 'payment_status',
-        'table_id', 'user_id', 'customer_name', 'customer_phone', 'note',
+        'table_id', 'user_id', 'customer_id', 'customer_name', 'customer_phone', 'note',
         'subtotal', 'discount_amount', 'tax_amount', 'total',
         'completed_at', 'cancelled_at',
     ];
@@ -67,6 +67,20 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The customer record behind this order, when a number was taken.
+     *
+     * Null does not mean anonymous — customer_name and customer_phone on the
+     * order are the record of what was actually typed. This is the link to the
+     * person, and it survives them being renamed.
+     *
+     * @return BelongsTo<Customer, $this>
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function isEditable(): bool

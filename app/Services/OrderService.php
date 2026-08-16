@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\CustomerSource;
 use App\Enums\FulfillmentStatus;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Enums\PaymentStatus;
 use App\Exceptions\PosOperationException;
+use App\Models\Customer;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -105,11 +107,58 @@ class OrderService
     {
         $this->assertEditable($order);
 
-        $order->forceFill([
-            'customer_phone' => $this->cleaned($customer['customer_phone'] ?? null),
-            'customer_name' => $this->cleaned($customer['customer_name'] ?? null),
-            'note' => $this->cleaned($customer['note'] ?? null),
-        ])->save();
+        $phone = $this->cleaned($customer['customer_phone'] ?? null);
+        $name = $this->cleaned($customer['customer_name'] ?? null);
+
+        DB::transaction(function () use ($order, $customer, $phone, $name): void {
+            $order->forceFill([
+                // The order keeps its own copy of whatever was typed. Renaming
+                // or deleting the customer record later must not rewrite it.
+                'customer_phone' => $phone,
+                'customer_name' => $name,
+                'note' => $this->cleaned($customer['note'] ?? null),
+                'customer_id' => $this->rememberCustomer($order, $phone, $name)?->id,
+            ])->save();
+        });
+    }
+
+    /**
+     * Find or start the customer record behind an order.
+     *
+     * The number is the identity: without one there is nothing to recognise
+     * somebody by later, and a name on its own would create a new "customer"
+     * every time two people share one. A record that already exists keeps its
+     * original source — a caller who later eats in was still met on the phone
+     * — but will accept a name if the restaurant never had one.
+     */
+    private function rememberCustomer(Order $order, ?string $phone, ?string $name): ?Customer
+    {
+        if (blank($phone)) {
+            return null;
+        }
+
+        $digits = Customer::normalisePhone($phone);
+
+        if ($digits === '') {
+            return null;
+        }
+
+        $existing = Customer::query()->where('phone_digits', $digits)->lockForUpdate()->first();
+
+        if (! $existing) {
+            return Customer::query()->create([
+                'name' => $name,
+                'phone' => $phone,
+                'phone_digits' => $digits,
+                'source' => CustomerSource::fromOrderType($order->type),
+            ]);
+        }
+
+        if (blank($existing->name) && filled($name)) {
+            $existing->update(['name' => $name]);
+        }
+
+        return $existing;
     }
 
     /** Blank details are stored as null, so "no name" is one value, not three. */

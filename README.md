@@ -116,6 +116,11 @@ each one tap away. Takings, order count, cash vs card, sales by order type, a da
 breakdown, best sellers and slowest movers. Every period can be viewed on screen, printed as a
 plain black-and-white sheet, or downloaded as a CSV for a spreadsheet.
 
+**Customers** — Everyone whose mobile number has been taken, gathered automatically from the
+orders that met them and filterable by walk in, dine in, phone call or added by hand. Search by
+name or number, sort by orders, last visit or total spent, and open anyone to see their history.
+Customers can also be added manually. Deleting one keeps their orders.
+
 **Back office** — Menu items and categories, tables, staff accounts and roles, and restaurant
 settings.
 
