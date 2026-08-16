@@ -178,17 +178,30 @@ display is running. Tap the display once to clear the browser chrome.
 The window stays put while the cashier moves between POS screens, so it is opened once a day,
 not once an order.
 
-**For a permanent terminal**, skip the button entirely with a desktop shortcut that launches
-Chrome straight onto the second screen with no browser chrome at all:
+### Making it fullscreen with no tap at all
+
+Browsers refuse to enlarge a window without a gesture *inside that window*, and nobody touches
+the customer's screen. The POS asks Chrome to open the display fullscreen and also requests it
+on the window's behalf, which Chrome usually honours — but when it declines, the display asks
+for one tap and stays fullscreen from then on.
+
+**To remove even that tap, launch the display from a desktop shortcut instead of the button.**
+This is what fixed terminals normally do, and it survives reboots:
 
 ```bash
-open -na "Google Chrome" --args --new-window \
-  --app=http://localhost/pos/display \
-  --window-position=1920,0 --start-fullscreen
+open -na "Google Chrome" --args \
+  --app=https://your-domain.example/pos/display \
+  --window-position=1920,0 \
+  --kiosk
 ```
 
-Set `--window-position` to the second screen's top-left corner (`1920,0` if the primary is
-1920 wide and the second sits to its right).
+Save it as a `.command` file on the desktop, `chmod +x` it, and double-click it when the
+terminal boots. `--kiosk` gives a chromeless fullscreen window with no address bar and no F11.
+Set `--window-position` to the second screen's top-left corner — `1920,0` if the primary screen
+is 1920 wide and the second sits to its right.
+
+The display still needs a signed-in session in that Chrome profile, so sign in to the POS once
+on the terminal beforehand.
 
 **Browser support:** automatic placement needs Chrome or Edge — Safari has no Window Management
 API, so there the window opens on the primary screen and has to be moved once, or launched from

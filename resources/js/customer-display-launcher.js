@@ -44,6 +44,32 @@ export default function customerDisplayLauncher({ url }) {
             }
 
             display.focus();
+            this.clearBrowserChrome(display);
+        },
+
+        /**
+         * Try to put the display fullscreen from here.
+         *
+         * Fullscreen is gated on a user gesture in the window being enlarged,
+         * and nobody is touching the customer's screen. The popup is
+         * same-origin and was opened by this very tap, though, so Chrome will
+         * often honour a request made on its behalf while that activation is
+         * still live. Attempts are made as the document becomes available and
+         * are silently abandoned if the browser refuses — the display then
+         * falls back to going fullscreen on its own first touch.
+         */
+        clearBrowserChrome(display) {
+            const attempt = () => {
+                try {
+                    display.document?.documentElement?.requestFullscreen?.().catch(() => {});
+                } catch {
+                    // Cross-origin or not ready; the display handles itself.
+                }
+            };
+
+            attempt();
+            display.addEventListener?.('load', attempt, { once: true });
+            setTimeout(attempt, 500);
         },
 
         /** Bounds of the second monitor, when the browser will tell us. */

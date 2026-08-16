@@ -183,13 +183,18 @@
         </div>
     </div>
 
-    {{-- Shown until somebody taps once; the popup opens with browser chrome
-         and a tap is the gesture the browser requires to clear it. --}}
-    <p x-show="!fullscreen"
-       x-cloak
-       class="pointer-events-none absolute right-4 bottom-3 text-xs font-medium text-kd-cream/25">
-        Tap anywhere for fullscreen
-    </p>
+    {{-- Only seen if the browser refused to open the window fullscreen. A
+         browser will not enlarge a window without a gesture in it, so this
+         asks for the one tap that settles it — at the start of a shift, in
+         front of staff, not customers. --}}
+    <div x-show="!fullscreen"
+         x-cloak
+         class="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center p-5">
+        <p class="rounded-full bg-kd-cream/10 px-6 py-3 text-[clamp(0.9rem,1.4vw,1.1rem)] font-semibold
+                  text-kd-cream/70 backdrop-blur-sm">
+            Tap this screen once to hide the browser bar
+        </p>
+    </div>
 </div>
 </body>
 </html>
