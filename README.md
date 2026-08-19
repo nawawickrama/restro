@@ -186,7 +186,15 @@ On the server, after pulling:
 php artisan migrate --force
 php artisan view:clear        # compiled Blade caches URLs; always clear it
 php artisan config:clear
+php artisan permission:cache-reset
 ```
+
+**New permissions arrive through migrations on purpose.** Adding a capability means adding it to
+`App\Support\Permissions` and seeding it — easy to forget on a server where deploying is "pull,
+then migrate". The symptom is confusing: the screen exists and its route works, but the menu item
+is invisible because nobody holds the permission that reveals it. So a migration syncs them, and
+the `migrate --force` above cannot miss it. It only ever adds: a permission granted to your
+cashiers by hand is never revoked.
 
 **Menu photos need the storage symlink.** `php artisan storage:link` over SSH is easiest. If the
 host gives you no shell, create it from a one-off PHP file in `public/`, then delete the file:

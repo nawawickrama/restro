@@ -24,10 +24,16 @@
     </header>
 
     {{-- Collapsed behind a button on phones, always open from lg up: the
-         `lg:block!` wins over the inline display Alpine sets. --}}
+         `lg:flex!` wins over the inline display Alpine sets.
+
+         From lg it stays put while the page scrolls — a long order history or
+         a full menu list should never scroll the navigation off the screen.
+         `self-start` stops the flex row stretching it to the page height,
+         which is what sticky needs in order to have anywhere to stick. --}}
     <nav x-show="nav"
          x-cloak
-         class="w-full shrink-0 border-b border-slate-200 bg-white p-4 lg:block! lg:w-72 lg:border-r lg:border-b-0
+         class="w-full shrink-0 border-b border-slate-200 bg-white p-4 lg:flex! lg:sticky lg:top-0 lg:h-dvh
+                lg:w-72 lg:flex-col lg:self-start lg:overflow-y-auto lg:border-r lg:border-b-0
                 dark:border-slate-800 dark:bg-slate-900">
         <div class="hidden lg:block">
             <a href="{{ route('dashboard') }}" class="block px-2 pt-2 pb-6 text-center">
@@ -40,7 +46,7 @@
             </a>
         </div>
 
-        <div class="space-y-1">
+        <div class="space-y-1 lg:flex-1">
             <x-nav-link :href="route('dashboard')" icon="home" :active="request()->routeIs('dashboard')">
                 Dashboard
             </x-nav-link>
@@ -99,7 +105,7 @@
             @endcan
         </div>
 
-        <div class="mt-6 border-t border-slate-200 pt-4 dark:border-slate-800">
+        <div class="mt-6 shrink-0 border-t border-slate-200 pt-4 dark:border-slate-800">
             <div class="flex items-center justify-between gap-2 px-2">
                 <div class="min-w-0">
                     <p class="truncate text-base font-semibold text-slate-800 dark:text-slate-100">
