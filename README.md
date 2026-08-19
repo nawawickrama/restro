@@ -53,8 +53,27 @@ database `restro`.
 
 **Change both passwords before this goes anywhere near a real restaurant.**
 
-The seed also creates 8 tables, 4 categories and 17 sample menu items, so the POS works the
-moment you sign in.
+The seed creates the roles, the two accounts above and the restaurant's details — **no menu and
+no tables**, because those belong to the restaurant and a sample menu in a live install is
+something somebody then has to hunt down and delete.
+
+For a populated system to develop or demonstrate against:
+
+```bash
+php artisan db:seed --class=DemoDataSeeder   # 4 categories, 17 items, 8 tables
+```
+
+### Clearing a system down for a real restaurant
+
+To hand over an install that has been used for testing:
+
+```bash
+php artisan restro:clear-data
+```
+
+It deletes the menu, tables, orders, customers and any uploaded menu photographs, and keeps the
+staff logins, roles, permissions and restaurant settings. It asks before doing anything; add
+`--force` to skip the prompt.
 
 ---
 
