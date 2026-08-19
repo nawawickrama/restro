@@ -38,6 +38,12 @@
     --color-kd-gold: #fcc000;
     --color-kd-cream: #fcfcfc;
     --color-kd-ink: #17100e;
+
+    /* Near-black with a warm cast, matched to the shopfront at night. */
+    --color-kd-night: #0b0a09;
+
+    /* Heavy condensed caps for the public site, echoing the shopfront sign. */
+    --font-display: 'Anton', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -173,6 +179,51 @@
                 color-mix(in srgb, var(--color-kd-gold) 14%, transparent),
                 transparent 60%
             );
+    }
+
+    /* The gold pinstripes on the dining room's black slat wall, borrowed as a
+       texture for the public site. Kept faint: it is a backdrop, not a
+       pattern to be read. */
+    .pinstripe {
+        background-image: repeating-linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--color-kd-gold) 55%, transparent) 0 1px,
+            transparent 1px 14px
+        );
+    }
+
+    /* Sections of the public site settle into place as they scroll in. The
+       script that adds `revealed` falls back to adding it immediately when
+       the visitor has asked for less motion. */
+    .reveal {
+        opacity: 0;
+        transform: translateY(1.5rem);
+        transition:
+            opacity 0.7s ease-out,
+            transform 0.7s ease-out;
+    }
+
+    .reveal.revealed {
+        opacity: 1;
+        transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .reveal {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+    }
+
+    /* Rule used to separate the public site's sections. */
+    .gold-rule {
+        background-image: linear-gradient(
+            90deg,
+            transparent,
+            color-mix(in srgb, var(--color-kd-gold) 70%, transparent),
+            transparent
+        );
     }
 
     /* Tick boxes, sized to be hit with a finger rather than a mouse pointer. */

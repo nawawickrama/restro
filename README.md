@@ -131,6 +131,20 @@ Dark mode is included and remembered per terminal.
 
 ---
 
+## The public site
+
+The domain root is the restaurant's own page — hero, what the business does, the dining room,
+a live menu, catering and events, and contact details. **Staff go to `/pos`**, linked from the
+page's footer; everything else still requires signing in.
+
+The menu section reads the same categories and items the till sells from, so the website cannot
+drift out of date: change a price in the POS and the public page changes with it. A category with
+no active items is skipped, and the whole section disappears if the menu is empty.
+
+Photographs live in `public/images/` — `storefront.jpg`, `interior.jpg` and `logo.png`. Replace
+those files to change the imagery; nothing else needs editing. Contact details, social links and
+the section list sit in one block at the top of `resources/views/site/landing.blade.php`.
+
 ## Deploying to shared hosting
 
 **The compiled assets are committed on purpose.** `public/build` is normally gitignored in a

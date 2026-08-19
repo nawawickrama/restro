@@ -15,6 +15,7 @@ use App\Http\Controllers\Pos\CustomerLookupController;
 use App\Http\Controllers\Pos\OrderScreenController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Site\LandingController;
 use App\Support\Permissions;
 use Illuminate\Support\Facades\Route;
 
@@ -23,7 +24,9 @@ use Illuminate\Support\Facades\Route;
  * invent its own roles without a code change.
  */
 
-Route::redirect('/', '/pos');
+// The restaurant's public page. Staff go to /pos, which is linked from its
+// footer; everything else in this application requires signing in.
+Route::get('/', LandingController::class)->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');

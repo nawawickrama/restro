@@ -1,7 +1,15 @@
 {
-  "_fonts-iZg3g7Zp.css": {
-    "file": "assets/fonts-iZg3g7Zp.css",
-    "src": "_fonts-iZg3g7Zp.css"
+  "_anton-400-normal-AUNGEG_V.woff": {
+    "file": "assets/anton-400-normal-AUNGEG_V.woff",
+    "src": "_anton-400-normal-AUNGEG_V.woff"
+  },
+  "_anton-400-normal-Byf51wtH.woff2": {
+    "file": "assets/anton-400-normal-Byf51wtH.woff2",
+    "src": "_anton-400-normal-Byf51wtH.woff2"
+  },
+  "_fonts-B7Yy036v.css": {
+    "file": "assets/fonts-B7Yy036v.css",
+    "src": "_fonts-B7Yy036v.css"
   },
   "_instrument-sans-400-normal-D1W7dsQl.woff": {
     "file": "assets/instrument-sans-400-normal-D1W7dsQl.woff",
@@ -36,7 +44,7 @@
     "src": "_instrument-sans-700-normal-DfAjL1vF.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DN-ASMdY.css",
+    "file": "assets/app-5UColo6y.css",
     "name": "app",
     "names": [
       "app.css"

@@ -14,6 +14,13 @@ export default defineConfig({
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600, 700],
                 }),
+
+                // Heavy condensed caps for the public site's headlines, chosen
+                // to echo the restaurant's own shopfront sign. Self-hosted like
+                // everything else, so the page needs no third-party request.
+                bunny('Anton', {
+                    weights: [400],
+                }),
             ],
         }),
         tailwindcss(),
