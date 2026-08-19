@@ -79,7 +79,49 @@
                     @endif
                 </p>
 
-                <form action="{{ route('pos.orders.customer', $order) }}" method="POST" class="mt-4 space-y-4">
+                {{-- Typing a number the restaurant already knows brings the
+                     customer up, so a regular is greeted by name instead of
+                     being asked for it again. The order is never held up by
+                     this: the lookup is advisory, and saving works the same
+                     whether it found anybody or not. --}}
+                <form action="{{ route('pos.orders.customer', $order) }}"
+                      method="POST"
+                      class="mt-4 space-y-4"
+                      x-data="{
+                          known: null,
+                          looking: false,
+                          timer: null,
+                          lookup(phone) {
+                              clearTimeout(this.timer);
+                              this.known = null;
+
+                              if (phone.replace(/\D/g, '').length < 7) {
+                                  return;
+                              }
+
+                              this.timer = setTimeout(async () => {
+                                  this.looking = true;
+                                  try {
+                                      const response = await fetch(
+                                          '{{ route('pos.customer.lookup') }}?phone=' + encodeURIComponent(phone),
+                                          { headers: { Accept: 'application/json' } },
+                                      );
+                                      const found = await response.json();
+                                      this.known = found.found ? found : null;
+
+                                      // Never overwrite something the cashier
+                                      // has already typed.
+                                      if (this.known?.name && ! this.$refs.name.value) {
+                                          this.$refs.name.value = this.known.name;
+                                      }
+                                  } catch {
+                                      this.known = null;
+                                  } finally {
+                                      this.looking = false;
+                                  }
+                              }, 350);
+                          },
+                      }">
                     @csrf
 
                     <x-field label="Mobile number" name="customer_phone" :required="$order->type->requiresCustomer()">
@@ -88,11 +130,28 @@
                                  inputmode="tel"
                                  :value="old('customer_phone', $order->customer_phone)"
                                  autocomplete="off"
+                                 x-on:input="lookup($event.target.value)"
                                  :required="$order->type->requiresCustomer()"/>
                     </x-field>
 
+                    <div x-show="known" x-cloak
+                         class="flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3
+                                dark:bg-emerald-500/10">
+                        <x-icon name="check" class="size-5 shrink-0 text-emerald-600 dark:text-emerald-400"/>
+                        <span class="min-w-0 text-sm">
+                            <span class="block font-bold text-emerald-900 dark:text-emerald-200"
+                                  x-text="known?.name || 'Known customer'"></span>
+                            <span class="block text-emerald-700 dark:text-emerald-300"
+                                  x-text="known?.orders
+                                      ? `${known.orders} previous order${known.orders === 1 ? '' : 's'}`
+                                          + (known.last_order ? ` · last ${known.last_order}` : '')
+                                      : 'Already in your customer list'"></span>
+                        </span>
+                    </div>
+
                     <x-field label="Customer name" name="customer_name" hint="Optional.">
                         <x-input name="customer_name"
+                                 x-ref="name"
                                  :value="old('customer_name', $order->customer_name)"
                                  autocomplete="off"/>
                     </x-field>

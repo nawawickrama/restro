@@ -11,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\Pos\CheckoutController;
 use App\Http\Controllers\Pos\CustomerDisplayController;
+use App\Http\Controllers\Pos\CustomerLookupController;
 use App\Http\Controllers\Pos\OrderScreenController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ReportController;
@@ -44,6 +45,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::post('tables/{table}', [PosController::class, 'selectTable'])->name('tables.select');
         Route::post('takeaway', [PosController::class, 'storeTakeaway'])->name('takeaway.store');
+
+        // Recognises a returning customer from their number as it is typed.
+        Route::get('customer-lookup', CustomerLookupController::class)->name('customer.lookup');
         Route::post('phone-order', [PosController::class, 'storePhoneOrder'])->name('phone.store');
 
         Route::prefix('orders/{order}')->name('orders.')->group(function () {

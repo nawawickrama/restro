@@ -111,13 +111,20 @@ class OrderService
         $name = $this->cleaned($customer['customer_name'] ?? null);
 
         DB::transaction(function () use ($order, $customer, $phone, $name): void {
+            $known = $this->rememberCustomer($order, $phone, $name);
+
             $order->forceFill([
                 // The order keeps its own copy of whatever was typed. Renaming
                 // or deleting the customer record later must not rewrite it.
                 'customer_phone' => $phone,
-                'customer_name' => $name,
+
+                // A number the restaurant already knows brings its name with
+                // it, so a regular who only reads out their number is still
+                // greeted by name on the receipt and the customer screen.
+                'customer_name' => $name ?? $known?->name,
+
                 'note' => $this->cleaned($customer['note'] ?? null),
-                'customer_id' => $this->rememberCustomer($order, $phone, $name)?->id,
+                'customer_id' => $known?->id,
             ])->save();
         });
     }
