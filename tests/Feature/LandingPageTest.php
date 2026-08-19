@@ -93,10 +93,13 @@ class LandingPageTest extends TestCase
             ->assertSee('images/logo.png');
     }
 
-    /** Staff reach the till from the footer; the POS itself is unchanged. */
-    public function test_the_footer_links_staff_to_the_till(): void
+    /**
+     * The public page carries no route into the till. Staff reach it by URL,
+     * and the POS itself is unchanged either way.
+     */
+    public function test_the_public_page_does_not_advertise_the_till(): void
     {
-        $this->get('/')->assertOk()->assertSee('Staff login');
+        $this->get('/')->assertOk()->assertDontSee('Staff login');
 
         $this->get(route('pos.home'))->assertRedirect(route('login'));
         $this->actingAs($this->cashier())->get(route('pos.home'))->assertOk();

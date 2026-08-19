@@ -16,6 +16,7 @@ use App\Http\Controllers\Pos\OrderScreenController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Site\LandingController;
+use App\Http\Controllers\Site\MenuController;
 use App\Support\Permissions;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,10 @@ use Illuminate\Support\Facades\Route;
 // The restaurant's public page. Staff go to /pos, which is linked from its
 // footer; everything else in this application requires signing in.
 Route::get('/', LandingController::class)->name('home');
+
+// The full menu, public and read-only. This is what the QR code on the table
+// points at, so it must work for somebody who has never signed in.
+Route::get('menu', MenuController::class)->name('menu');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');

@@ -289,9 +289,9 @@
                     </h2>
                 </div>
 
-                <a href="tel:{{ $phoneLink }}"
+                <a href="{{ route('menu') }}"
                    class="text-sm font-bold tracking-wide text-kd-gold uppercase transition hover:text-white">
-                    Call to order →
+                    See the full menu →
                 </a>
             </div>
 
@@ -321,9 +321,17 @@
                 @endforeach
             </div>
 
-            <p class="reveal mt-14 text-sm text-kd-cream/40">
-                A selection from the full menu. Prices include all taxes.
-            </p>
+            <div class="reveal mt-16 flex flex-wrap items-center gap-6 border-t border-white/10 pt-10">
+                <a href="{{ route('menu') }}"
+                   class="inline-flex items-center gap-3 bg-kd-gold px-8 py-5 text-base font-bold
+                          tracking-wide text-kd-night uppercase transition hover:bg-white">
+                    View the full menu
+                </a>
+
+                <p class="text-sm text-kd-cream/40">
+                    A selection from the board. Prices include all taxes.
+                </p>
+            </div>
         </div>
     </section>
 @endif
@@ -444,7 +452,17 @@
 
         <div class="flex flex-col items-center gap-2 text-sm text-kd-cream/40 lg:items-end">
             <span>&copy; {{ date('Y') }} K&amp;D Foods &amp; Catering</span>
-            <a href="{{ route('pos.home') }}" class="transition hover:text-kd-gold">Staff login</a>
+
+            <p class="flex items-center gap-1.5">
+                Engineered by
+                <a href="https://coredile.com" target="_blank" rel="noopener"
+                   class="font-semibold text-kd-cream/70 transition hover:text-kd-gold">Coredile</a>
+                with
+                <svg class="size-4 text-kd-red" viewBox="0 0 24 24" fill="currentColor" aria-label="love">
+                    <path d="M12 21s-7.5-4.6-9.6-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.6 12c-2.1 4.4-9.6 9-9.6 9z"/>
+                </svg>
+                of Sri Lanka
+            </p>
         </div>
     </div>
 </footer>

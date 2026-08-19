@@ -145,6 +145,23 @@ Photographs live in `public/images/` — `storefront.jpg`, `interior.jpg` and `l
 those files to change the imagery; nothing else needs editing. Contact details, social links and
 the section list sit in one block at the top of `resources/views/site/landing.blade.php`.
 
+### The QR menu
+
+`/menu` is the full menu as a public, read-only page — the one to put behind a QR code on the
+table. It lists every active category and item with its price, description and, where the back
+office has one, the item's photograph. There is nothing on it to press: it tells a customer what
+is on and what it costs, and that is all.
+
+Because it reads the same items the till sells, a price changed in the back office reaches the
+table without anybody reprinting a card. Items switched off disappear, and a category with
+nothing sellable in it is skipped entirely.
+
+Point your QR code at `https://your-domain/menu`.
+
+Item photographs are served at the size they were uploaded, and are lazy-loaded so a phone only
+fetches what is scrolled into view. If the menu grows long with large photographs, generating
+thumbnails on upload is the next step.
+
 ## Deploying to shared hosting
 
 **The compiled assets are committed on purpose.** `public/build` is normally gitignored in a
