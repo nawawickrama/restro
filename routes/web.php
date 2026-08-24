@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Catering\CateringBookingController;
+use App\Http\Controllers\Catering\CateringCatalogueController;
 use App\Http\Controllers\Catering\CateringItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderHistoryController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Pos\CustomerLookupController;
 use App\Http\Controllers\Pos\OrderScreenController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Site\CatalogueController;
 use App\Http\Controllers\Site\LandingController;
 use App\Http\Controllers\Site\MenuController;
 use App\Support\Permissions;
@@ -34,6 +36,11 @@ Route::get('/', LandingController::class)->name('home');
 // The full menu, public and read-only. This is what the QR code on the table
 // points at, so it must work for somebody who has never signed in.
 Route::get('menu', MenuController::class)->name('menu');
+
+// The catering brochure, public and read-only: a category per page of artwork,
+// at an address that can be shared or put behind a QR code.
+Route::get('catalogue', [CatalogueController::class, 'index'])->name('catalogue.index');
+Route::get('catalogue/{catalogue}', [CatalogueController::class, 'show'])->name('catalogue.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -116,6 +123,13 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::resource('catering-items', CateringItemController::class)
             ->except('show')
             ->parameters(['catering-items' => 'cateringItem']);
+
+        Route::resource('catering-catalogues', CateringCatalogueController::class)
+            ->except('show')
+            ->parameters(['catering-catalogues' => 'cateringCatalogue']);
+
+        Route::delete('catering-catalogues/{cateringCatalogue}/pages/{image}',
+            [CateringCatalogueController::class, 'destroyImage'])->name('catering-catalogues.pages.destroy');
     });
 
     Route::middleware('permission:'.Permissions::MANAGE_SETTINGS)->group(function () {

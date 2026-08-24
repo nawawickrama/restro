@@ -155,6 +155,13 @@ from there it prints as a kitchen sheet. Prices are optional, so a job can be bo
 anybody has quoted it, and a booking taken with a mobile number is filed against the customer
 record. Catering dishes have their own catalogue, kept apart from the menu the till sells.
 
+**Catering catalogue** — The designed artwork customers are shown, as opposed to the working list
+of dishes a booking sheet is built from. A category — "Wedding packages", "Office lunches" — holds
+however many pages of artwork it needs, and is published at `/catalogue/its-name`: an address that
+can be sent to somebody enquiring or put behind a QR code. The address is fixed when the category
+is created and survives a rename, because it may already be printed on something. A category can
+be hidden without losing its artwork, and one with no artwork stays off the public page.
+
 **Back office** — Menu items and categories, tables, staff accounts and roles, and restaurant
 settings.
 
@@ -191,6 +198,9 @@ table without anybody reprinting a card. Items switched off disappear, and a cat
 nothing sellable in it is skipped entirely.
 
 Point your QR code at `https://your-domain/menu`.
+
+The catering brochure sits alongside it at `/catalogue`, with each package at
+`/catalogue/{name}` — managed from **Catering catalogue** in the back office.
 
 Item photographs are served at the size they were uploaded, and are lazy-loaded so a phone only
 fetches what is scrolled into view. If the menu grows long with large photographs, generating

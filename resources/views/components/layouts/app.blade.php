@@ -95,6 +95,11 @@
                             :active="request()->routeIs('catering-items.*')">
                     Catering items
                 </x-nav-link>
+
+                <x-nav-link :href="route('catering-catalogues.index')" icon="receipt"
+                            :active="request()->routeIs('catering-catalogues.*')">
+                    Catering catalogue
+                </x-nav-link>
             @endcan
 
             @can(\App\Support\Permissions::MANAGE_CUSTOMERS)
