@@ -11,9 +11,9 @@ class DatabaseSeeder extends Seeder
      * roles and permissions, an account to sign in with, and the restaurant's
      * own details.
      *
-     * The menu and the tables are deliberately not here. Those belong to the
-     * restaurant, and a sample menu shipped into a live install is something
-     * somebody then has to find and delete. Run {@see DemoDataSeeder} when a
+     * The menu is here because it is the restaurant's own, taken from its
+     * price list. The tables are not: nobody has said how the room is laid
+     * out. Run {@see DemoDataSeeder} for a set of sample tables when a
      * populated system is wanted for development or a demonstration.
      *
      * Every seeder below is idempotent, so `db:seed` can be re-run safely.
@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             UserSeeder::class,
             SettingsSeeder::class,
+            MenuSeeder::class,
         ]);
     }
 }

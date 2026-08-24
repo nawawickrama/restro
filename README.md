@@ -53,14 +53,21 @@ database `restro`.
 
 **Change both passwords before this goes anywhere near a real restaurant.**
 
-The seed creates the roles, the two accounts above and the restaurant's details — **no menu and
-no tables**, because those belong to the restaurant and a sample menu in a live install is
-something somebody then has to hunt down and delete.
+The seed creates the roles, the two accounts above, the restaurant's details and its menu. It
+does **not** create tables, because nobody has said how the dining room is laid out.
 
-For a populated system to develop or demonstrate against:
+The menu is the restaurant's own, taken from its price list: 16 categories and 173 items. A dish
+sold in two sizes is two items — "Chicken Fried Rice (Small)" and "(Large)" — because an order
+line holds one price. Seven pork dishes had no price on the list and are created **switched off**,
+so they show in the back office waiting to be priced and cannot reach an order until they are.
+
+Items are only ever created, never overwritten, so once you are trading the back office owns
+prices and a seeder re-run during a deploy cannot undo an edit.
+
+For sample tables to develop or demonstrate against:
 
 ```bash
-php artisan db:seed --class=DemoDataSeeder   # 4 categories, 17 items, 8 tables
+php artisan db:seed --class=DemoDataSeeder   # 8 numbered tables
 ```
 
 ### Clearing a system down for a real restaurant
@@ -153,8 +160,8 @@ Dark mode is included and remembered per terminal.
 ## The public site
 
 The domain root is the restaurant's own page — hero, what the business does, the dining room,
-a live menu, catering and events, and contact details. **Staff go to `/pos`**, linked from the
-page's footer; everything else still requires signing in.
+a live menu, catering and events, and contact details. **Staff go to `/pos`** — the public pages
+carry no link to it — and everything else still requires signing in.
 
 The menu section reads the same categories and items the till sells from, so the website cannot
 drift out of date: change a price in the POS and the public page changes with it. A category with
