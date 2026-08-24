@@ -86,6 +86,17 @@
                 </x-nav-link>
             @endcan
 
+            @can(\App\Support\Permissions::MANAGE_CATERING)
+                <x-nav-link :href="route('catering.index')" icon="clock" :active="request()->routeIs('catering.*')">
+                    Catering
+                </x-nav-link>
+
+                <x-nav-link :href="route('catering-items.index')" icon="menu-book"
+                            :active="request()->routeIs('catering-items.*')">
+                    Catering items
+                </x-nav-link>
+            @endcan
+
             @can(\App\Support\Permissions::MANAGE_CUSTOMERS)
                 <x-nav-link :href="route('customers.index')" icon="users" :active="request()->routeIs('customers.*')">
                     Customers

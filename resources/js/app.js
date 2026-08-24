@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import cateringSheet from './catering-sheet';
 import customerDisplay from './customer-display';
 import customerDisplayLauncher from './customer-display-launcher';
 import openOrders from './open-orders';
@@ -24,6 +25,7 @@ Alpine.data('themeToggle', () => ({
 Alpine.data('posOrder', posOrder);
 Alpine.data('openOrders', openOrders);
 Alpine.data('customerDisplay', customerDisplay);
+Alpine.data('cateringSheet', cateringSheet);
 Alpine.data('customerDisplayLauncher', customerDisplayLauncher);
 
 /**

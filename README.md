@@ -147,6 +147,14 @@ orders that met them and filterable by walk in, dine in, phone call or added by 
 name or number, sort by orders, last visit or total spent, and open anyone to see their history.
 Customers can also be added manually. Deleting one keeps their orders.
 
+**Catering** — A month-at-a-glance diary of what the kitchen is booked for. A booking holds the
+customer, the number of guests, the venue, the date and time, and a sheet of dishes with a
+quantity and a unit each — 5 kg, 250 portions, 30 litres — because one kitchen sends curry out by
+the kilo and rice by the portion on the same job. Clicking a day's booking opens it in place;
+from there it prints as a kitchen sheet. Prices are optional, so a job can be booked before
+anybody has quoted it, and a booking taken with a mobile number is filed against the customer
+record. Catering dishes have their own catalogue, kept apart from the menu the till sells.
+
 **Back office** — Menu items and categories, tables, staff accounts and roles, and restaurant
 settings.
 

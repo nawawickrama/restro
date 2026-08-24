@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\RestaurantTableController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Catering\CateringBookingController;
+use App\Http\Controllers\Catering\CateringItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\Pos\CheckoutController;
@@ -105,6 +107,16 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::middleware('permission:'.Permissions::MANAGE_CUSTOMERS)
         ->resource('customers', CustomerController::class);
+
+    // The catering diary and the catalogue it quotes from.
+    Route::middleware('permission:'.Permissions::MANAGE_CATERING)->group(function () {
+        Route::resource('catering', CateringBookingController::class)
+            ->parameters(['catering' => 'cateringBooking']);
+
+        Route::resource('catering-items', CateringItemController::class)
+            ->except('show')
+            ->parameters(['catering-items' => 'cateringItem']);
+    });
 
     Route::middleware('permission:'.Permissions::MANAGE_SETTINGS)->group(function () {
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');

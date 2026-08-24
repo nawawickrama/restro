@@ -39,6 +39,9 @@ final class Permissions
      */
     public const MANAGE_CUSTOMERS = 'manage_customers';
 
+    /** The catering diary: bookings, their sheets, and the item catalogue. */
+    public const MANAGE_CATERING = 'manage_catering';
+
     public const MANAGE_SETTINGS = 'manage_settings';
 
     public const VIEW_REPORTS = 'view_reports';
@@ -59,6 +62,7 @@ final class Permissions
             self::MANAGE_TABLES,
             self::MANAGE_USERS,
             self::MANAGE_CUSTOMERS,
+            self::MANAGE_CATERING,
             self::MANAGE_SETTINGS,
             self::VIEW_REPORTS,
         ];
