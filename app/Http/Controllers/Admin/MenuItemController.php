@@ -19,9 +19,15 @@ class MenuItemController extends Controller
     {
         $categoryId = $request->integer('category');
 
+        // Only 'active' and 'disabled' narrow the list; anything else shows all,
+        // so a stale bookmark cannot hide half the menu.
+        $status = $request->string('status')->toString();
+
         $items = MenuItem::query()
             ->with('category')
             ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
+            ->when($status === 'active', fn ($q) => $q->where('is_active', true))
+            ->when($status === 'disabled', fn ($q) => $q->where('is_active', false))
             ->when($search = $request->string('search')->toString(), fn ($q) => $q->where('name', 'like', "%{$search}%"))
             ->orderBy('category_id')
             ->ordered()
@@ -33,6 +39,12 @@ class MenuItemController extends Controller
             'categories' => Category::query()->ordered()->get(),
             'categoryId' => $categoryId,
             'search' => $search,
+            'status' => in_array($status, ['active', 'disabled'], true) ? $status : '',
+            'counts' => [
+                'all' => MenuItem::query()->count(),
+                'active' => MenuItem::query()->where('is_active', true)->count(),
+                'disabled' => MenuItem::query()->where('is_active', false)->count(),
+            ],
         ]);
     }
 

@@ -138,13 +138,42 @@
                             <input type="hidden" :name="`items[${index}][catering_item_id]`"
                                    :value="line.catering_item_id ?? ''">
 
-                            <input type="text"
-                                   :name="`items[${index}][name]`"
-                                   x-model="line.name"
-                                   :list="`catering-catalogue`"
-                                   x-on:input="matchCatalogue(line)"
-                                   placeholder="Start typing, or pick from the list"
-                                   class="field-control">
+                            {{-- Our own suggestion list rather than a native
+                                 <datalist>: the browser paints that popup
+                                 itself and it does not follow the page theme,
+                                 which left white text on a white panel. --}}
+                            <div class="relative" x-on:click.outside="openFor = null">
+                                <input type="text"
+                                       :name="`items[${index}][name]`"
+                                       x-model="line.name"
+                                       x-on:focus="openFor = line.key"
+                                       x-on:input="matchCatalogue(line); openFor = line.key"
+                                       x-on:keydown.escape="openFor = null"
+                                       autocomplete="off"
+                                       placeholder="Start typing, or pick from the list"
+                                       class="field-control">
+
+                                <ul x-show="openFor === line.key && suggestions(line).length"
+                                    x-cloak
+                                    class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border
+                                           border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700
+                                           dark:bg-slate-800">
+                                    <template x-for="item in suggestions(line)" :key="item.id">
+                                        <li>
+                                            <button type="button"
+                                                    x-on:click="choose(line, item)"
+                                                    class="flex w-full items-baseline justify-between gap-3 px-4 py-2.5
+                                                           text-left transition hover:bg-slate-100
+                                                           dark:hover:bg-slate-700">
+                                                <span class="min-w-0 truncate font-semibold text-slate-800
+                                                             dark:text-slate-100" x-text="item.name"></span>
+                                                <span class="shrink-0 text-sm text-slate-500 dark:text-slate-400"
+                                                      x-text="priceLabel(item)"></span>
+                                            </button>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
                         </div>
 
                         <div class="lg:col-span-2">
@@ -207,11 +236,6 @@
                     </div>
                 </template>
 
-                <datalist id="catering-catalogue">
-                    @foreach ($catalogue as $item)
-                        <option value="{{ $item->name }}"></option>
-                    @endforeach
-                </datalist>
             </div>
 
             <div class="flex items-baseline justify-between border-t border-slate-100 p-5 sm:p-6 dark:border-slate-800">

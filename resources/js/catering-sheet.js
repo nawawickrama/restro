@@ -13,6 +13,9 @@ export default function cateringSheet({ catalogue, lines, currency }) {
         lines: [],
         nextKey: 0,
 
+        // Which row's suggestion list is open, by line key.
+        openFor: null,
+
         init() {
             // Keys keep Alpine's x-for stable while rows are added and removed.
             this.lines = (lines ?? []).map((line) => ({
@@ -44,6 +47,40 @@ export default function cateringSheet({ catalogue, lines, currency }) {
 
         removeLine(index) {
             this.lines.splice(index, 1);
+        },
+
+        /**
+         * Dishes matching what has been typed.
+         *
+         * Drawn ourselves rather than through a native <datalist>: the browser
+         * paints that popup itself, and it does not follow the page's theme —
+         * on a dark terminal it rendered white text on its own white panel.
+         */
+        suggestions(line) {
+            const term = (line.name ?? '').trim().toLowerCase();
+
+            const matches = term === ''
+                ? this.catalogue
+                : this.catalogue.filter((item) => item.name.toLowerCase().includes(term));
+
+            return matches.slice(0, 8);
+        },
+
+        /** Pick a dish from the list, taking its usual unit and price with it. */
+        choose(line, item) {
+            line.name = item.name;
+            line.catering_item_id = item.id;
+            line.unit = item.unit;
+
+            if (item.price !== null && (line.unit_price === '' || line.unit_price === null)) {
+                line.unit_price = item.price;
+            }
+
+            this.openFor = null;
+        },
+
+        priceLabel(item) {
+            return item.price === null ? '' : `${this.money(item.price)} / ${item.unit}`;
         },
 
         /**

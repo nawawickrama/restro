@@ -9,8 +9,8 @@
         </x-btn>
     </x-slot:actions>
 
-    <x-card>
-        <form method="GET" class="flex flex-wrap gap-3">
+    <x-card padded="false">
+        <form method="GET" class="flex flex-wrap gap-3 p-4">
             <div class="min-w-56 flex-1">
                 <x-search-input name="search" :value="$search" placeholder="Search items"/>
             </div>
@@ -24,8 +24,33 @@
                 @endforeach
             </x-select>
 
+            {{-- Carried through the search so the two filters compose. --}}
+            <input type="hidden" name="status" value="{{ $status }}">
+
             <x-btn size="md">Filter</x-btn>
         </form>
+
+        {{-- Whether an item is on sale is the thing most often being checked,
+             so it gets buttons rather than another dropdown. --}}
+        <div class="flex flex-wrap gap-2 border-t border-slate-100 p-4 dark:border-slate-800">
+            @foreach ([
+                ['', 'All items', $counts['all']],
+                ['active', 'Active', $counts['active']],
+                ['disabled', 'Disabled', $counts['disabled']],
+            ] as [$value, $label, $count])
+                <a href="{{ request()->fullUrlWithQuery(['status' => $value ?: null, 'page' => null]) }}"
+                   class="touch-target inline-flex items-center gap-2 rounded-xl px-4 text-base font-semibold transition
+                          {{ $status === $value
+                              ? 'bg-brand-600 text-white shadow-sm'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700' }}">
+                    {{ $label }}
+                    <span class="rounded-full px-2 py-0.5 text-xs font-bold tabular-nums
+                                 {{ $status === $value ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700' }}">
+                        {{ number_format($count) }}
+                    </span>
+                </a>
+            @endforeach
+        </div>
     </x-card>
 
     @if ($items->isEmpty())
