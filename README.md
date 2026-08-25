@@ -156,11 +156,16 @@ anybody has quoted it, and a booking taken with a mobile number is filed against
 record. Catering dishes have their own catalogue, kept apart from the menu the till sells.
 
 **Catering catalogue** — The designed artwork customers are shown, as opposed to the working list
-of dishes a booking sheet is built from. A category — "Wedding packages", "Office lunches" — holds
-however many pages of artwork it needs, and is published at `/catalogue/its-name`: an address that
-can be sent to somebody enquiring or put behind a QR code. The address is fixed when the category
-is created and survives a rename, because it may already be printed on something. A category can
-be hidden without losing its artwork, and one with no artwork stays off the public page.
+of dishes a booking sheet is built from. A category — Weddings, Office lunches — holds as many
+**packages** as it needs, each its own artwork with its own name: Weddings → Package 1, Package 2,
+Package 3. Uploads are named from the file they arrived as, so a designer sending `Package 2.jpg`
+needs no retyping, and each can be renamed and reordered afterwards.
+
+Published at `/catalogue`, with each category at `/catalogue/its-name` and every package linkable
+on its own — an address that can be sent to somebody enquiring or put behind a QR code. The
+address is fixed when the category is created and survives a rename, because it may already be
+printed on something. A category can be hidden without losing its artwork, and one with no
+artwork stays off the public page.
 
 **Back office** — Menu items and categories, tables, staff accounts and roles, and restaurant
 settings.

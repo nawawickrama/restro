@@ -9,6 +9,7 @@ use App\Models\CateringCatalogue;
 use App\Models\CateringCatalogueImage;
 use App\Services\CateringCatalogueImageService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -80,7 +81,35 @@ class CateringCatalogueController extends Controller
         return redirect()->route('catering-catalogues.index')->with('status', 'Catalogue deleted.');
     }
 
-    /** Remove a single page of artwork. */
+    /**
+     * Name and order the artworks in a category.
+     *
+     * Each one is a package in its own right — Package 1, Package 2 — so what
+     * they are called is the point, not an afterthought.
+     */
+    public function updateImages(Request $request, CateringCatalogue $cateringCatalogue): RedirectResponse
+    {
+        $validated = $request->validate([
+            'pages' => ['array'],
+            'pages.*.title' => ['nullable', 'string', 'max:120'],
+            'pages.*.sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+        ]);
+
+        $cateringCatalogue->load('images');
+
+        foreach ($validated['pages'] ?? [] as $id => $fields) {
+            $image = $cateringCatalogue->images->firstWhere('id', (int) $id);
+
+            $image?->update([
+                'title' => filled($fields['title'] ?? null) ? trim($fields['title']) : null,
+                'sort_order' => $fields['sort_order'] ?? $image->sort_order,
+            ]);
+        }
+
+        return back()->with('status', 'Artwork updated.');
+    }
+
+    /** Remove a single artwork. */
     public function destroyImage(CateringCatalogue $cateringCatalogue, CateringCatalogueImage $image): RedirectResponse
     {
         abort_unless($image->catering_catalogue_id === $cateringCatalogue->id, 404);

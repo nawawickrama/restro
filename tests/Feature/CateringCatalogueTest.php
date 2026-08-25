@@ -31,7 +31,7 @@ class CateringCatalogueTest extends TestCase
             'description' => 'Buffet and plated menus.',
             'is_active' => '1',
             'images' => collect(range(1, $pages))
-                ->map(fn ($n) => UploadedFile::fake()->image("page{$n}.jpg"))
+                ->map(fn ($n) => UploadedFile::fake()->image("Package {$n}.jpg"))
                 ->all(),
         ])->assertRedirect();
 
@@ -193,6 +193,67 @@ class CateringCatalogueTest extends TestCase
     }
 
     /** Artwork is images, not arbitrary uploads. */
+    /**
+     * A category holds several packages, each an artwork in its own right —
+     * Weddings has Package 1, Package 2, Package 3 — rather than pages of one
+     * long brochure.
+     */
+    public function test_a_category_holds_several_named_packages(): void
+    {
+        $catalogue = $this->withArtwork('Weddings', 3);
+
+        // Named from the files they arrived as, so nothing is retyped.
+        $this->assertSame(
+            ['Package 1', 'Package 2', 'Package 3'],
+            $catalogue->images->pluck('title')->all(),
+        );
+
+        $this->get(route('catalogue.show', $catalogue))
+            ->assertOk()
+            ->assertSee('Package 1')
+            ->assertSee('Package 2')
+            ->assertSee('Package 3')
+            // Each package is linkable on its own.
+            ->assertSee('id="package-'.$catalogue->images->first()->id.'"', false);
+    }
+
+    public function test_a_package_can_be_renamed_and_reordered(): void
+    {
+        $catalogue = $this->withArtwork('Weddings', 3);
+        $second = $catalogue->images[1];
+
+        $this->actingAs($this->manager())
+            ->put(route('catering-catalogues.pages.update', $catalogue), [
+                'pages' => [$second->id => ['title' => 'Gold Package', 'sort_order' => 1]],
+            ])->assertRedirect();
+
+        $this->assertSame('Gold Package', $second->fresh()->title);
+
+        $this->get(route('catalogue.show', $catalogue->fresh()))
+            ->assertOk()
+            ->assertSee('Gold Package')
+            ->assertDontSee('Package 2');
+    }
+
+    /** A camera filename is no name at all, so the position stands in. */
+    public function test_an_unnamed_package_falls_back_to_its_position(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->manager())->post(route('catering-catalogues.store'), [
+            'name' => 'Office Lunches',
+            'is_active' => '1',
+            'images' => [UploadedFile::fake()->image('IMG_2381.jpg')],
+        ])->assertRedirect();
+
+        $catalogue = CateringCatalogue::query()->where('slug', 'office-lunches')->sole();
+
+        $this->assertNull($catalogue->images->first()->title);
+        $this->assertSame('Package 1', $catalogue->images->first()->displayTitle(1));
+
+        $this->get(route('catalogue.show', $catalogue))->assertOk()->assertSee('Package 1');
+    }
+
     public function test_a_non_image_upload_is_refused(): void
     {
         Storage::fake('public');

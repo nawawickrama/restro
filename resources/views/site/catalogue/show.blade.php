@@ -44,21 +44,40 @@
         @endif
     </div>
 
-    {{-- The artwork, one page under another. Full width on a phone, because
-         these are designed sheets meant to be read, not thumbnails. --}}
-    <div class="mt-12 space-y-8">
+    @if ($catalogue->images->count() > 1)
+        <div class="mt-10 flex flex-wrap justify-center gap-2">
+            @foreach ($catalogue->images as $image)
+                <a href="#package-{{ $image->id }}"
+                   class="rounded-full border border-white/15 px-5 py-2.5 text-sm font-bold tracking-wide
+                          text-kd-cream/75 uppercase transition hover:border-kd-gold hover:text-kd-gold">
+                    {{ $image->displayTitle($loop->iteration) }}
+                </a>
+            @endforeach
+        </div>
+    @endif
+
+    {{-- Each artwork is a package in its own right, so it gets its own heading
+         and its own anchor — a link can point at one package rather than the
+         whole category. Full width, because these are designed sheets meant to
+         be read, not thumbnails. --}}
+    <div class="mt-12 space-y-14">
         @foreach ($catalogue->images as $image)
-            <figure>
+            @php($title = $image->displayTitle($loop->iteration))
+
+            <section id="package-{{ $image->id }}" class="scroll-mt-6">
+                <div class="flex items-baseline gap-4">
+                    <h2 class="font-display text-2xl tracking-wide text-kd-gold uppercase sm:text-3xl">
+                        {{ $title }}
+                    </h2>
+                    <span class="gold-rule h-px flex-1 opacity-40"></span>
+                </div>
+
                 <img src="{{ $image->url() }}"
-                     alt="{{ $catalogue->name }} — page {{ $loop->iteration }}"
+                     alt="{{ $catalogue->name }} — {{ $title }}"
                      loading="{{ $loop->first ? 'eager' : 'lazy' }}"
                      decoding="async"
-                     class="w-full border border-white/10 bg-white/5">
-
-                @if ($image->caption)
-                    <figcaption class="mt-3 text-center text-sm text-kd-cream/50">{{ $image->caption }}</figcaption>
-                @endif
-            </figure>
+                     class="mt-5 w-full border border-white/10 bg-white/5">
+            </section>
         @endforeach
     </div>
 
@@ -83,7 +102,7 @@
                        class="group border border-white/10 p-5 transition hover:border-kd-gold">
                         <span class="font-display text-lg tracking-wide uppercase">{{ $other->name }}</span>
                         <span class="mt-1 block text-sm text-kd-cream/50">
-                            {{ $other->images->count() }} {{ Str::plural('page', $other->images->count()) }} →
+                            {{ $other->images->count() }} {{ Str::plural('package', $other->images->count()) }} →
                         </span>
                     </a>
                 @endforeach

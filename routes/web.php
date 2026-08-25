@@ -128,6 +128,9 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->except('show')
             ->parameters(['catering-catalogues' => 'cateringCatalogue']);
 
+        Route::put('catering-catalogues/{cateringCatalogue}/artworks',
+            [CateringCatalogueController::class, 'updateImages'])->name('catering-catalogues.pages.update');
+
         Route::delete('catering-catalogues/{cateringCatalogue}/pages/{image}',
             [CateringCatalogueController::class, 'destroyImage'])->name('catering-catalogues.pages.destroy');
     });

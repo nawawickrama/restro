@@ -48,7 +48,7 @@
                                 </p>
                                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
                                     {{ $catalogue->images->count() }}
-                                    {{ Str::plural('page', $catalogue->images->count()) }}
+                                    {{ Str::plural('package', $catalogue->images->count()) }}
                                 </p>
                             </div>
 

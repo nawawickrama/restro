@@ -67,7 +67,7 @@
 
                         <p class="mt-4 text-sm font-bold tracking-wide text-kd-gold uppercase">
                             View {{ $catalogue->images->count() }}
-                            {{ Str::plural('page', $catalogue->images->count()) }} →
+                            {{ Str::plural('package', $catalogue->images->count()) }} →
                         </p>
                     </div>
                 </a>

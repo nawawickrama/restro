@@ -48,8 +48,8 @@
                     <x-textarea name="description" rows="2">{{ old('description', $catalogue->description) }}</x-textarea>
                 </x-field>
 
-                <x-field label="Artwork" name="images"
-                         :hint="'JPG, PNG or WebP, up to '.App\Support\UploadLimit::label().' each. Choose several at once for a multi-page menu.'"
+                <x-field label="Add artwork" name="images"
+                         :hint="'One image per package — Package 1, Package 2. JPG, PNG or WebP, up to '.App\Support\UploadLimit::label().' each. Choose several at once; each is named from its filename and can be renamed below.'"
                          class="sm:col-span-2 xl:col-span-6">
                     <input type="file"
                            name="images[]"
@@ -93,9 +93,9 @@
         <x-card padded="false">
             <div class="flex flex-wrap items-center justify-between gap-3 p-5 sm:p-6">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Artwork pages</h2>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Packages in this category</h2>
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Shown in this order on the public page.
+                        Each artwork is its own package. Name them as customers should see them.
                     </p>
                 </div>
 
@@ -107,37 +107,60 @@
             @if ($catalogue->images->isEmpty())
                 <p class="border-t border-slate-100 px-5 py-10 text-center text-base text-slate-500
                           sm:px-6 dark:border-slate-800 dark:text-slate-400">
-                    No artwork yet. Choose the pages above and save.
+                    No artwork yet. Choose the images above and save.
                 </p>
             @else
-                <div class="grid gap-4 border-t border-slate-100 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3
-                            dark:border-slate-800">
-                    @foreach ($catalogue->images as $image)
-                        <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
-                            <a href="{{ $image->url() }}" target="_blank" class="block">
-                                <img src="{{ $image->url() }}" alt="" loading="lazy"
-                                     class="aspect-4/3 w-full bg-slate-100 object-cover dark:bg-slate-800">
-                            </a>
+                <form action="{{ route('catering-catalogues.pages.update', $catalogue) }}" method="POST"
+                      class="border-t border-slate-100 dark:border-slate-800">
+                    @csrf
+                    @method('PUT')
 
-                            <div class="flex items-center justify-between gap-2 p-3">
-                                <span class="text-sm font-semibold text-slate-600 dark:text-slate-300">
-                                    Page {{ $loop->iteration }}
-                                </span>
+                    <div class="grid gap-4 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
+                        @foreach ($catalogue->images as $image)
+                            <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+                                <a href="{{ $image->url() }}" target="_blank" class="block">
+                                    <img src="{{ $image->url() }}" alt="{{ $image->displayTitle($loop->iteration) }}"
+                                         loading="lazy"
+                                         class="aspect-4/3 w-full bg-slate-100 object-cover dark:bg-slate-800">
+                                </a>
 
-                                <x-confirm-form :action="route('catering-catalogues.pages.destroy', [$catalogue, $image])"
-                                                method="DELETE"
-                                                title="Remove this page?"
-                                                message="The image is deleted and disappears from the public catalogue."
-                                                confirm="Remove page"
-                                                size="sm">
-                                    <x-slot:trigger>
-                                        <x-icon name="trash" class="size-5"/>
-                                    </x-slot:trigger>
-                                </x-confirm-form>
+                                <div class="space-y-3 p-3">
+                                    <input type="text"
+                                           name="pages[{{ $image->id }}][title]"
+                                           value="{{ old("pages.{$image->id}.title", $image->title) }}"
+                                           placeholder="Package {{ $loop->iteration }}"
+                                           class="field-control">
+
+                                    <div class="flex items-center gap-2">
+                                        <label class="sr-only" for="order-{{ $image->id }}">Order</label>
+                                        <input type="number" min="0" id="order-{{ $image->id }}"
+                                               name="pages[{{ $image->id }}][sort_order]"
+                                               value="{{ old("pages.{$image->id}.sort_order", $image->sort_order) }}"
+                                               class="field-control w-24"
+                                               title="Display order">
+
+                                        <span class="flex-1"></span>
+
+                                        <x-confirm-form :action="route('catering-catalogues.pages.destroy', [$catalogue, $image])"
+                                                        method="DELETE"
+                                                        title="Remove this artwork?"
+                                                        message="The image is deleted and disappears from the public catalogue."
+                                                        confirm="Remove artwork"
+                                                        size="sm">
+                                            <x-slot:trigger>
+                                                <x-icon name="trash" class="size-5"/>
+                                            </x-slot:trigger>
+                                        </x-confirm-form>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    @endforeach
-                </div>
+                        @endforeach
+                    </div>
+
+                    <div class="border-t border-slate-100 p-5 sm:p-6 dark:border-slate-800">
+                        <x-btn size="md">Save names &amp; order</x-btn>
+                    </div>
+                </form>
             @endif
         </x-card>
     @endif
