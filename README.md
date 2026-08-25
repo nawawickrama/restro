@@ -234,6 +234,18 @@ git add public/build && git commit -m "Rebuild assets"
 
 Vite empties the folder each build, so old hashed files are removed by the same commit.
 
+**If a deploy seems to have changed nothing**, run the check — every way a deploy silently fails
+to take effect looks identical from the outside:
+
+```bash
+php artisan restro:doctor
+```
+
+It reports pending migrations, permissions the code checks but the database lacks (which hide
+whole sections of the menu without erroring), compiled views and cached config left over from the
+previous deployment, the built assets, the storage link and `APP_DEBUG` — and prints the commands
+to fix whatever it found.
+
 On the server, after pulling:
 
 ```bash
