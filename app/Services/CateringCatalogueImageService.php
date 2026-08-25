@@ -22,25 +22,34 @@ class CateringCatalogueImageService
     /**
      * Add artworks to the end of a category.
      *
-     * Each upload is a package in its own right, so it is named from the file
-     * it arrived as — a designer sending "Package 2.jpg" gets "Package 2"
-     * without anybody retyping it. The name is editable afterwards.
+     * Each row is a package in its own right, carrying the name it goes out
+     * under. An unnamed row falls back to the file it arrived as, so a
+     * designer sending "Package 2.jpg" needs nobody to retype anything.
      *
-     * @param  list<UploadedFile>  $files
+     * @param  list<array{file: UploadedFile, title: string|null}>  $artworks
      */
-    public function add(CateringCatalogue $catalogue, array $files): int
+    public function add(CateringCatalogue $catalogue, array $artworks): int
     {
         $position = (int) $catalogue->images()->max('sort_order');
         $added = 0;
 
-        foreach ($files as $file) {
+        foreach ($artworks as $artwork) {
+            $file = $artwork['file'] ?? null;
+
             if (! $file instanceof UploadedFile) {
                 continue;
             }
 
+            $title = trim((string) ($artwork['title'] ?? ''));
+
+            // Work the name out before the file is written. Storing first and
+            // deriving after leaves the file on disk with no row pointing at
+            // it if anything in between goes wrong.
+            $title = $title !== '' ? $title : $this->titleFrom($file);
+
             $catalogue->images()->create([
                 'path' => $file->store(self::DIRECTORY, 'public'),
-                'title' => $this->titleFrom($file),
+                'title' => $title,
                 'sort_order' => ++$position,
             ]);
 
@@ -57,7 +66,7 @@ class CateringCatalogueImageService
         $name = trim(preg_replace('/[_-]+/', ' ', $name));
 
         // Names like IMG_2381 or DSC00194 say nothing; leave those blank so the
-        // page falls back to its position.
+        // page falls back to the artwork's position.
         if ($name === '' || preg_match('/^(img|dsc|photo|image|screenshot)\b/i', $name)) {
             return null;
         }

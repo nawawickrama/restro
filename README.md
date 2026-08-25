@@ -161,7 +161,12 @@ of dishes a booking sheet is built from. A category — Weddings, Office lunches
 Package 3. Uploads are named from the file they arrived as, so a designer sending `Package 2.jpg`
 needs no retyping, and each can be renamed and reordered afterwards.
 
-Each artwork is managed on its own: rename it, move it, or upload a revised image in its place —
+Artworks are added a row at a time — choose the image, give it its title — so a category is
+created with its packages already named rather than uploaded first and labelled afterwards. A row
+left blank takes its name from the file it arrived as, and a spare row nobody used is ignored.
+
+Each artwork is then managed on its own: rename it, move it, or upload a revised image in its
+place —
 a corrected Package 2 is still Package 2, so it keeps its name and its position and the file it
 replaced is deleted rather than left on disk.
 

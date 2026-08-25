@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import catalogueUploader from './catalogue-uploader';
 import cateringSheet from './catering-sheet';
 import customerDisplay from './customer-display';
 import customerDisplayLauncher from './customer-display-launcher';
@@ -26,6 +27,7 @@ Alpine.data('posOrder', posOrder);
 Alpine.data('openOrders', openOrders);
 Alpine.data('customerDisplay', customerDisplay);
 Alpine.data('cateringSheet', cateringSheet);
+Alpine.data('catalogueUploader', catalogueUploader);
 Alpine.data('customerDisplayLauncher', customerDisplayLauncher);
 
 /**

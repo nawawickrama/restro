@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Support\Permissions;
 use App\Support\UploadLimit;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 
 class CateringCatalogueRequest extends FormRequest
 {
@@ -22,11 +23,12 @@ class CateringCatalogueRequest extends FormRequest
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'is_active' => ['boolean'],
 
-            // Artwork, a page at a time. The cap comes from php.ini rather than
-            // a number picked here, so the rule can never be looser than what
-            // the server will actually take.
-            'images' => ['array'],
-            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:'.UploadLimit::kilobytes()],
+            // One row per artwork: the image, and the name it goes out under.
+            // The size cap comes from php.ini rather than a number picked here,
+            // so the rule can never be looser than what the server will take.
+            'artworks' => ['array'],
+            'artworks.*.image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.UploadLimit::kilobytes()],
+            'artworks.*.title' => ['nullable', 'string', 'max:120'],
         ];
     }
 
@@ -34,16 +36,36 @@ class CateringCatalogueRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'images.*.max' => 'Each page must be smaller than '.UploadLimit::label().'.',
-            'images.*.mimes' => 'Artwork must be a JPG, PNG or WebP file.',
-            'images.*.image' => 'Artwork must be an image file.',
+            'artworks.*.image.max' => 'Each artwork must be smaller than '.UploadLimit::label().'.',
+            'artworks.*.image.mimes' => 'Artwork must be a JPG, PNG or WebP file.',
+            'artworks.*.image.image' => 'Artwork must be an image file.',
         ];
     }
 
     /** The fields that belong on the model itself. */
     public function catalogueAttributes(): array
     {
-        return collect($this->validated())->except(['images'])->all();
+        return collect($this->validated())->except(['artworks'])->all();
+    }
+
+    /**
+     * The artworks that actually carry a file.
+     *
+     * The form always offers an empty row to fill in, so rows nobody used are
+     * dropped rather than saved as blanks.
+     *
+     * @return list<array{file: UploadedFile, title: string|null}>
+     */
+    public function artworks(): array
+    {
+        return collect($this->file('artworks') ?? [])
+            ->map(fn ($row, $index) => [
+                'file' => $row['image'] ?? null,
+                'title' => $this->input("artworks.{$index}.title"),
+            ])
+            ->filter(fn (array $row) => $row['file'] instanceof UploadedFile)
+            ->values()
+            ->all();
     }
 
     protected function prepareForValidation(): void

@@ -48,18 +48,77 @@
                     <x-textarea name="description" rows="2">{{ old('description', $catalogue->description) }}</x-textarea>
                 </x-field>
 
-                <x-field label="Add artwork" name="images"
-                         :hint="'One image per package — Package 1, Package 2. JPG, PNG or WebP, up to '.App\Support\UploadLimit::label().' each. Choose several at once; each is named from its filename and can be renamed below.'"
-                         class="sm:col-span-2 xl:col-span-6">
-                    <input type="file"
-                           name="images[]"
-                           id="images"
-                           accept="image/jpeg,image/png,image/webp"
-                           multiple
-                           class="field-control file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100
-                                  file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700
-                                  dark:file:bg-slate-700 dark:file:text-slate-100">
-                </x-field>
+            </div>
+
+            {{-- One row per artwork: the image and the name it goes out under.
+                 Rows are added and removed before anything is saved, so a
+                 category can be created with its packages already named. --}}
+            <div x-data="catalogueUploader({ titles: {{ Js::from(collect(old('artworks', []))->pluck('title')->all()) }} })"
+                 class="space-y-4 border-t border-slate-100 pt-6 dark:border-slate-800">
+
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 dark:text-white">Add artwork</h2>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            One image per package, each with the name customers see.
+                            Up to {{ App\Support\UploadLimit::label() }} each.
+                        </p>
+                    </div>
+
+                    <x-btn type="button" variant="secondary" size="md" x-on:click="addRow()">
+                        <x-icon name="plus" class="size-5"/>
+                        Add another
+                    </x-btn>
+                </div>
+
+                <template x-for="(row, index) in rows" :key="row.key">
+                    <div class="flex flex-wrap items-end gap-4 rounded-2xl border border-slate-200 p-4
+                                dark:border-slate-700">
+                        {{-- What was picked, so the wrong file is obvious. --}}
+                        <div class="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl
+                                    border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+                            <img x-show="row.preview" x-cloak :src="row.preview" alt="" class="size-full object-cover">
+                            <x-icon x-show="!row.preview" name="menu-book" class="size-6 text-slate-400"/>
+                        </div>
+
+                        <div class="min-w-48 flex-1">
+                            <label class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                Image
+                            </label>
+                            <input type="file"
+                                   :name="`artworks[${index}][image]`"
+                                   accept="image/jpeg,image/png,image/webp"
+                                   x-on:change="choose(row, $event)"
+                                   class="field-control file:mr-3 file:rounded-md file:border-0 file:bg-slate-100
+                                          file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-slate-700
+                                          dark:file:bg-slate-700 dark:file:text-slate-100">
+                        </div>
+
+                        <div class="min-w-48 flex-1">
+                            <label class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                Title
+                            </label>
+                            <input type="text"
+                                   :name="`artworks[${index}][title]`"
+                                   x-model="row.title"
+                                   :placeholder="`Package ${index + 1}`"
+                                   maxlength="120"
+                                   class="field-control">
+                        </div>
+
+                        <button type="button"
+                                x-on:click="removeRow(index)"
+                                class="flex size-12 shrink-0 items-center justify-center rounded-xl text-rose-600
+                                       transition hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                aria-label="Remove this row">
+                            <x-icon name="trash" class="size-5"/>
+                        </button>
+                    </div>
+                </template>
+
+                @error('artworks.*.image')
+                    <p class="text-sm font-medium text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                @enderror
             </div>
 
             <x-toggle name="is_active"

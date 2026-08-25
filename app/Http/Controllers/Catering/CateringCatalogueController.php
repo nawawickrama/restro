@@ -40,10 +40,10 @@ class CateringCatalogueController extends Controller
             'slug' => CateringCatalogue::makeSlug($request->validated('name')),
         ]);
 
-        $this->images->add($catalogue, $request->file('images') ?? []);
+        $this->images->add($catalogue, $request->artworks());
 
         return redirect()->route('catering-catalogues.edit', $catalogue)
-            ->with('status', 'Catalogue created. Add the artwork pages below.');
+            ->with('status', 'Catalogue created.');
     }
 
     public function edit(CateringCatalogue $cateringCatalogue): View
@@ -62,12 +62,12 @@ class CateringCatalogueController extends Controller
     {
         $cateringCatalogue->update($request->catalogueAttributes());
 
-        $added = $this->images->add($cateringCatalogue, $request->file('images') ?? []);
+        $added = $this->images->add($cateringCatalogue, $request->artworks());
 
         return redirect()->route('catering-catalogues.edit', $cateringCatalogue)->with(
             'status',
             $added > 0
-                ? "Catalogue updated and {$added} ".str('page')->plural($added).' added.'
+                ? "Catalogue updated and {$added} ".str('artwork')->plural($added).' added.'
                 : 'Catalogue updated.',
         );
     }

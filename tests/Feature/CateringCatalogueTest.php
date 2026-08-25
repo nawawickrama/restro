@@ -30,8 +30,8 @@ class CateringCatalogueTest extends TestCase
             'name' => $name,
             'description' => 'Buffet and plated menus.',
             'is_active' => '1',
-            'images' => collect(range(1, $pages))
-                ->map(fn ($n) => UploadedFile::fake()->image("Package {$n}.jpg"))
+            'artworks' => collect(range(1, $pages))
+                ->map(fn ($n) => ['image' => UploadedFile::fake()->image("Package {$n}.jpg")])
                 ->all(),
         ])->assertRedirect();
 
@@ -142,7 +142,7 @@ class CateringCatalogueTest extends TestCase
         $this->actingAs($this->manager())->put(route('catering-catalogues.update', $catalogue), [
             'name' => $catalogue->name,
             'is_active' => '1',
-            'images' => [UploadedFile::fake()->image('page3.jpg')],
+            'artworks' => [['image' => UploadedFile::fake()->image('page3.jpg')]],
         ])->assertRedirect();
 
         $this->assertCount(3, $catalogue->fresh()->images);
@@ -279,6 +279,53 @@ class CateringCatalogueTest extends TestCase
         $this->assertSame('Package 1', $weddings->images->first()->fresh()->title);
     }
 
+    /**
+     * The title is given as the artwork is uploaded, so a category can be
+     * created with its packages already named rather than labelled afterwards.
+     */
+    public function test_artworks_are_titled_as_they_are_uploaded(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->manager())->post(route('catering-catalogues.store'), [
+            'name' => 'Weddings',
+            'is_active' => '1',
+            'artworks' => [
+                ['image' => UploadedFile::fake()->image('a.jpg'), 'title' => 'Silver Package'],
+                ['image' => UploadedFile::fake()->image('b.jpg'), 'title' => 'Gold Package'],
+                // Left blank on purpose: it falls back to the filename.
+                ['image' => UploadedFile::fake()->image('Package 3.jpg'), 'title' => ''],
+            ],
+        ])->assertRedirect();
+
+        $catalogue = CateringCatalogue::query()->where('slug', 'weddings')->sole();
+
+        $this->assertSame(
+            ['Silver Package', 'Gold Package', 'Package 3'],
+            $catalogue->images->pluck('title')->all(),
+        );
+    }
+
+    /** The form always offers a spare row; an unused one is not saved. */
+    public function test_rows_without_a_file_are_ignored(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->manager())->post(route('catering-catalogues.store'), [
+            'name' => 'Office Lunches',
+            'is_active' => '1',
+            'artworks' => [
+                ['image' => UploadedFile::fake()->image('a.jpg'), 'title' => 'Package 1'],
+                ['title' => 'Typed a name but never chose a file'],
+            ],
+        ])->assertRedirect();
+
+        $catalogue = CateringCatalogue::query()->where('slug', 'office-lunches')->sole();
+
+        $this->assertCount(1, $catalogue->images);
+        $this->assertSame('Package 1', $catalogue->images->first()->title);
+    }
+
     /** A camera filename is no name at all, so the position stands in. */
     public function test_an_unnamed_package_falls_back_to_its_position(): void
     {
@@ -287,7 +334,7 @@ class CateringCatalogueTest extends TestCase
         $this->actingAs($this->manager())->post(route('catering-catalogues.store'), [
             'name' => 'Office Lunches',
             'is_active' => '1',
-            'images' => [UploadedFile::fake()->image('IMG_2381.jpg')],
+            'artworks' => [['image' => UploadedFile::fake()->image('IMG_2381.jpg')]],
         ])->assertRedirect();
 
         $catalogue = CateringCatalogue::query()->where('slug', 'office-lunches')->sole();
@@ -305,8 +352,8 @@ class CateringCatalogueTest extends TestCase
         $this->actingAs($this->manager())->post(route('catering-catalogues.store'), [
             'name' => 'Bad Upload',
             'is_active' => '1',
-            'images' => [UploadedFile::fake()->create('menu.pdf', 40, 'application/pdf')],
-        ])->assertSessionHasErrors('images.0');
+            'artworks' => [['image' => UploadedFile::fake()->create('menu.pdf', 40, 'application/pdf')]],
+        ])->assertSessionHasErrors('artworks.0.image');
 
         $this->assertSame(0, CateringCatalogue::query()->count());
     }
