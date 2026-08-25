@@ -223,8 +223,9 @@ class CateringCatalogueTest extends TestCase
         $second = $catalogue->images[1];
 
         $this->actingAs($this->manager())
-            ->put(route('catering-catalogues.pages.update', $catalogue), [
-                'pages' => [$second->id => ['title' => 'Gold Package', 'sort_order' => 1]],
+            ->post(route('catering-catalogues.pages.update', [$catalogue, $second]), [
+                'title' => 'Gold Package',
+                'sort_order' => 1,
             ])->assertRedirect();
 
         $this->assertSame('Gold Package', $second->fresh()->title);
@@ -233,6 +234,49 @@ class CateringCatalogueTest extends TestCase
             ->assertOk()
             ->assertSee('Gold Package')
             ->assertDontSee('Package 2');
+    }
+
+    /**
+     * A revised artwork replaces the picture, not the package: the name and
+     * the position stay, and the file it replaced is not left on disk.
+     */
+    public function test_an_artwork_image_can_be_replaced_in_place(): void
+    {
+        $catalogue = $this->withArtwork('Weddings', 3);
+        $second = $catalogue->images[1];
+        $originalPath = $second->path;
+
+        $this->actingAs($this->manager())
+            ->post(route('catering-catalogues.pages.update', [$catalogue, $second]), [
+                'title' => $second->title,
+                'sort_order' => $second->sort_order,
+                'image' => UploadedFile::fake()->image('Package 2 revised.jpg'),
+            ])->assertRedirect();
+
+        $second->refresh();
+
+        $this->assertNotSame($originalPath, $second->path);
+        Storage::disk('public')->assertMissing($originalPath);
+        Storage::disk('public')->assertExists($second->path);
+
+        // Still Package 2, still second.
+        $this->assertSame('Package 2', $second->title);
+        $this->assertSame(2, $second->sort_order);
+        $this->assertCount(3, $catalogue->fresh()->images);
+    }
+
+    /** One artwork cannot be edited through another category's address. */
+    public function test_an_artwork_cannot_be_edited_through_the_wrong_category(): void
+    {
+        $weddings = $this->withArtwork('Weddings', 1);
+        $lunches = $this->withArtwork('Office Lunches', 1);
+
+        $this->actingAs($this->manager())
+            ->post(route('catering-catalogues.pages.update', [$lunches, $weddings->images->first()]), [
+                'title' => 'Sneaked In',
+            ])->assertNotFound();
+
+        $this->assertSame('Package 1', $weddings->images->first()->fresh()->title);
     }
 
     /** A camera filename is no name at all, so the position stands in. */

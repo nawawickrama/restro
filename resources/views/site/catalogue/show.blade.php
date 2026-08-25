@@ -35,7 +35,8 @@
     </div>
 </header>
 
-<main class="mx-auto max-w-5xl px-5 py-12">
+<main class="mx-auto max-w-5xl px-5 py-12"
+      x-data="{ zoomed: null, open(src, title) { this.zoomed = { src, title }; }, close() { this.zoomed = null; } }">
     <div class="text-center">
         <h1 class="font-display text-[clamp(1.9rem,7vw,3.5rem)] leading-none uppercase">{{ $catalogue->name }}</h1>
 
@@ -72,11 +73,18 @@
                     <span class="gold-rule h-px flex-1 opacity-40"></span>
                 </div>
 
-                <img src="{{ $image->url() }}"
-                     alt="{{ $catalogue->name }} — {{ $title }}"
-                     loading="{{ $loop->first ? 'eager' : 'lazy' }}"
-                     decoding="async"
-                     class="mt-5 w-full border border-white/10 bg-white/5">
+                {{-- Tapping opens the artwork full screen: these are designed
+                     sheets meant to be read, and a phone needs the room. --}}
+                <button type="button"
+                        x-on:click="open({{ Js::from($image->url()) }}, {{ Js::from($title) }})"
+                        class="group mt-5 block w-full cursor-zoom-in border border-white/10 bg-white/5
+                               transition hover:border-kd-gold/60">
+                    <img src="{{ $image->url() }}"
+                         alt="{{ $catalogue->name }} — {{ $title }}"
+                         loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                         decoding="async"
+                         class="w-full">
+                </button>
             </section>
         @endforeach
     </div>
@@ -90,6 +98,26 @@
                   transition hover:bg-kd-gold hover:text-kd-night">
             Call {{ $phone }}
         </a>
+    </div>
+
+    <div x-show="zoomed"
+         x-cloak
+         x-on:keydown.escape.window="close()"
+         x-on:click="close()"
+         class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-kd-night/95 p-4
+                backdrop-blur-sm"
+         role="dialog"
+         aria-modal="true">
+        <p class="font-display text-lg tracking-wide text-kd-gold uppercase" x-text="zoomed?.title"></p>
+
+        <img :src="zoomed?.src" :alt="zoomed?.title"
+             class="max-h-[80dvh] max-w-full cursor-zoom-out object-contain">
+
+        <button type="button" x-on:click="close()"
+                class="rounded-full border border-kd-cream/25 px-6 py-2.5 text-sm font-bold tracking-wide
+                       text-kd-cream uppercase transition hover:border-kd-gold hover:text-kd-gold">
+            Close
+        </button>
     </div>
 
     @if ($others->isNotEmpty())

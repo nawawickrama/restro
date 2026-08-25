@@ -161,8 +161,13 @@ of dishes a booking sheet is built from. A category — Weddings, Office lunches
 Package 3. Uploads are named from the file they arrived as, so a designer sending `Package 2.jpg`
 needs no retyping, and each can be renamed and reordered afterwards.
 
+Each artwork is managed on its own: rename it, move it, or upload a revised image in its place —
+a corrected Package 2 is still Package 2, so it keeps its name and its position and the file it
+replaced is deleted rather than left on disk.
+
 Published at `/catalogue`, with each category at `/catalogue/its-name` and every package linkable
-on its own — an address that can be sent to somebody enquiring or put behind a QR code. The
+on its own. Tapping an artwork opens it full screen, since these are designed sheets meant to be
+read on a phone — an address that can be sent to somebody enquiring or put behind a QR code. The
 address is fixed when the category is created and survives a rename, because it may already be
 printed on something. A category can be hidden without losing its artwork, and one with no
 artwork stays off the public page.

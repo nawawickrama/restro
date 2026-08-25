@@ -110,57 +110,68 @@
                     No artwork yet. Choose the images above and save.
                 </p>
             @else
-                <form action="{{ route('catering-catalogues.pages.update', $catalogue) }}" method="POST"
-                      class="border-t border-slate-100 dark:border-slate-800">
-                    @csrf
-                    @method('PUT')
+                {{-- Each artwork is edited on its own: its name, its place, and
+                     a revised image if one has come in. A form per artwork, so
+                     replacing one cannot disturb another — and so no form is
+                     nested inside another, which HTML does not allow. --}}
+                <div class="grid gap-5 border-t border-slate-100 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3
+                            dark:border-slate-800">
+                    @foreach ($catalogue->images as $image)
+                        <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <a href="{{ $image->url() }}" target="_blank" class="block">
+                                <img src="{{ $image->url() }}"
+                                     alt="{{ $image->displayTitle($loop->iteration) }}"
+                                     loading="lazy"
+                                     class="aspect-4/3 w-full bg-slate-100 object-cover dark:bg-slate-800">
+                            </a>
 
-                    <div class="grid gap-4 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
-                        @foreach ($catalogue->images as $image)
-                            <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
-                                <a href="{{ $image->url() }}" target="_blank" class="block">
-                                    <img src="{{ $image->url() }}" alt="{{ $image->displayTitle($loop->iteration) }}"
-                                         loading="lazy"
-                                         class="aspect-4/3 w-full bg-slate-100 object-cover dark:bg-slate-800">
-                                </a>
+                            <form action="{{ route('catering-catalogues.pages.update', [$catalogue, $image]) }}"
+                                  method="POST"
+                                  enctype="multipart/form-data"
+                                  class="space-y-3 p-4">
+                                @csrf
 
-                                <div class="space-y-3 p-3">
-                                    <input type="text"
-                                           name="pages[{{ $image->id }}][title]"
-                                           value="{{ old("pages.{$image->id}.title", $image->title) }}"
-                                           placeholder="Package {{ $loop->iteration }}"
-                                           class="field-control">
+                                <x-field label="Title" name="title">
+                                    <x-input name="title"
+                                             :value="old('title', $image->title)"
+                                             placeholder="Package {{ $loop->iteration }}"/>
+                                </x-field>
 
-                                    <div class="flex items-center gap-2">
-                                        <label class="sr-only" for="order-{{ $image->id }}">Order</label>
-                                        <input type="number" min="0" id="order-{{ $image->id }}"
-                                               name="pages[{{ $image->id }}][sort_order]"
-                                               value="{{ old("pages.{$image->id}.sort_order", $image->sort_order) }}"
-                                               class="field-control w-24"
-                                               title="Display order">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <x-field label="Order" name="sort_order">
+                                        <x-input name="sort_order" type="number" min="0"
+                                                 :value="old('sort_order', $image->sort_order)"/>
+                                    </x-field>
 
-                                        <span class="flex-1"></span>
-
-                                        <x-confirm-form :action="route('catering-catalogues.pages.destroy', [$catalogue, $image])"
-                                                        method="DELETE"
-                                                        title="Remove this artwork?"
-                                                        message="The image is deleted and disappears from the public catalogue."
-                                                        confirm="Remove artwork"
-                                                        size="sm">
-                                            <x-slot:trigger>
-                                                <x-icon name="trash" class="size-5"/>
-                                            </x-slot:trigger>
-                                        </x-confirm-form>
-                                    </div>
+                                    <x-field label="Replace image" name="image">
+                                        <input type="file"
+                                               name="image"
+                                               accept="image/jpeg,image/png,image/webp"
+                                               class="field-control file:mr-3 file:rounded-md file:border-0
+                                                      file:bg-slate-100 file:px-2 file:py-1 file:text-xs
+                                                      file:font-semibold file:text-slate-700
+                                                      dark:file:bg-slate-700 dark:file:text-slate-100">
+                                    </x-field>
                                 </div>
-                            </div>
-                        @endforeach
-                    </div>
 
-                    <div class="border-t border-slate-100 p-5 sm:p-6 dark:border-slate-800">
-                        <x-btn size="md">Save names &amp; order</x-btn>
-                    </div>
-                </form>
+                                <div class="flex items-center gap-2 pt-1">
+                                    <x-btn size="sm" class="flex-1">Save</x-btn>
+
+                                    <x-confirm-form :action="route('catering-catalogues.pages.destroy', [$catalogue, $image])"
+                                                    method="DELETE"
+                                                    title="Remove {{ $image->displayTitle($loop->iteration) }}?"
+                                                    message="The artwork is deleted and disappears from the public catalogue."
+                                                    confirm="Remove artwork"
+                                                    size="sm">
+                                        <x-slot:trigger>
+                                            <x-icon name="trash" class="size-5"/>
+                                        </x-slot:trigger>
+                                    </x-confirm-form>
+                                </div>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
             @endif
         </x-card>
     @endif

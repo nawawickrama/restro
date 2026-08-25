@@ -8,6 +8,7 @@ use App\Http\Requests\CateringCatalogueRequest;
 use App\Models\CateringCatalogue;
 use App\Models\CateringCatalogueImage;
 use App\Services\CateringCatalogueImageService;
+use App\Support\UploadLimit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -82,28 +83,38 @@ class CateringCatalogueController extends Controller
     }
 
     /**
-     * Name and order the artworks in a category.
+     * One artwork: its name, its place, and optionally a new image for it.
      *
-     * Each one is a package in its own right — Package 1, Package 2 — so what
-     * they are called is the point, not an afterthought.
+     * Each artwork is a package in its own right, so each is edited on its own
+     * rather than through a form covering the whole category. Replacing the
+     * image keeps the name and the position, because a revised Package 2 is
+     * still Package 2.
      */
-    public function updateImages(Request $request, CateringCatalogue $cateringCatalogue): RedirectResponse
-    {
+    public function updateImage(
+        Request $request,
+        CateringCatalogue $cateringCatalogue,
+        CateringCatalogueImage $image,
+    ): RedirectResponse {
+        abort_unless($image->catering_catalogue_id === $cateringCatalogue->id, 404);
+
         $validated = $request->validate([
-            'pages' => ['array'],
-            'pages.*.title' => ['nullable', 'string', 'max:120'],
-            'pages.*.sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'title' => ['nullable', 'string', 'max:120'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.UploadLimit::kilobytes()],
+        ], [
+            'image.max' => 'The artwork must be smaller than '.UploadLimit::label().'.',
+            'image.mimes' => 'The artwork must be a JPG, PNG or WebP file.',
         ]);
 
-        $cateringCatalogue->load('images');
+        $image->update([
+            'title' => filled($validated['title'] ?? null) ? trim($validated['title']) : null,
+            'sort_order' => $validated['sort_order'] ?? $image->sort_order,
+        ]);
 
-        foreach ($validated['pages'] ?? [] as $id => $fields) {
-            $image = $cateringCatalogue->images->firstWhere('id', (int) $id);
+        if ($request->hasFile('image')) {
+            $this->images->replace($image, $request->file('image'));
 
-            $image?->update([
-                'title' => filled($fields['title'] ?? null) ? trim($fields['title']) : null,
-                'sort_order' => $fields['sort_order'] ?? $image->sort_order,
-            ]);
+            return back()->with('status', 'Artwork replaced.');
         }
 
         return back()->with('status', 'Artwork updated.');

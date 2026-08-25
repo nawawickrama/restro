@@ -65,6 +65,22 @@ class CateringCatalogueImageService
         return Str::limit(Str::title($name), 120, '');
     }
 
+    /**
+     * Swap an artwork's image for a revised one.
+     *
+     * The artwork keeps its name and its place in the category, because a
+     * designer sending a corrected Package 2 is replacing the picture, not
+     * the package. The file it replaces is deleted rather than left behind.
+     */
+    public function replace(CateringCatalogueImage $image, UploadedFile $file): void
+    {
+        $previous = $image->path;
+
+        $image->update(['path' => $file->store(self::DIRECTORY, 'public')]);
+
+        $this->deleteFile($previous);
+    }
+
     /** Remove one artwork, and the file behind it. */
     public function remove(CateringCatalogueImage $image): void
     {
