@@ -44,6 +44,28 @@ php artisan serve
 The default `.env` expects MySQL on `127.0.0.1:3306` with user `root` and an empty password,
 database `restro`.
 
+### Time
+
+The application runs on **Asia/Colombo**, set by `APP_TIMEZONE` in `.env`:
+
+```dotenv
+APP_TIMEZONE=Asia/Colombo
+```
+
+Every date in this codebase comes from PHP rather than from the database clock, so that one line
+decides when the day turns over — for the daily order numbers (`ORD-20260826-0001`), for "today"
+on the dashboard and the reports, for the catering diary, and for the time printed on receipts.
+Sri Lanka keeps no daylight saving, so the offset never moves.
+
+It is worth being deliberate about, because the failure is quiet: left on UTC, the day would roll
+at 5:30am local, so an evening's takings would be split across two reports and the last sales of
+a night would carry tomorrow's order number. `php artisan restro:doctor` reports the timezone in
+use, and the server's own clock does not matter — PHP converts.
+
+Changing this on a database that already holds orders reinterprets their stored timestamps rather
+than converting them: a sale written at 20:00 UTC begins reading as 20:00 Colombo. Set it before
+the restaurant starts trading.
+
 ### Sign in
 
 | Role | Email | Password |

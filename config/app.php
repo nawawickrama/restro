@@ -65,7 +65,11 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // Sri Lanka, where the restaurant is. Every date in this application comes
+    // from PHP rather than the database clock, so this one setting decides when
+    // "today" starts for the daily order numbers, the reports and the catering
+    // diary. Sri Lanka has no daylight saving, so the offset never moves.
+    'timezone' => env('APP_TIMEZONE', 'Asia/Colombo'),
 
     /*
     |--------------------------------------------------------------------------

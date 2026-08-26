@@ -38,6 +38,7 @@ class Doctor extends Command
         $this->checkCaches();
         $this->checkAssets();
         $this->checkStorageLink();
+        $this->checkTimezone();
         $this->checkEnvironment();
 
         $this->newLine();
@@ -188,6 +189,25 @@ class Doctor extends Command
 
         $this->bad('Storage link', 'missing — uploaded photos and artwork will not load');
         $this->fixes[] = 'php artisan storage:link';
+    }
+
+    /**
+     * Every date in the application comes from PHP, so this decides when
+     * "today" starts for the daily order numbers, the reports and the diary.
+     */
+    private function checkTimezone(): void
+    {
+        $timezone = (string) config('app.timezone');
+        $now = now();
+
+        if ($timezone === 'UTC') {
+            $this->caution('Timezone', 'UTC — days roll over at '.$now->clone()->timezone('Asia/Colombo')->format('H:i').' local time');
+            $this->fixes[] = 'Set APP_TIMEZONE=Asia/Colombo in .env, then: php artisan config:clear';
+
+            return;
+        }
+
+        $this->ok('Timezone', $timezone.' — '.$now->format('D d M Y, g:i A'));
     }
 
     private function checkEnvironment(): void
