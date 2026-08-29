@@ -240,6 +240,54 @@
     </footer>
 </div>
 
+{{-- The kitchen's copy, on the same print job as the customer's bill so one
+     press of Print produces both slips. `break-before: page` is what makes the
+     printer cut between them; without it the two run together on one length of
+     paper. Deliberately plain — what to cook, how many, and when it was rung
+     up. No logo, no address, no totals, nothing to read past. --}}
+<div class="print-sheet kitchen-ticket mx-auto mt-6 max-w-md bg-white p-6 text-slate-900 shadow-lg print:shadow-none">
+    <h2 class="text-center text-lg font-bold uppercase tracking-widest">Kitchen</h2>
+
+    <div class="my-3 border-t border-dashed border-slate-400"></div>
+
+    {{-- The kitchen needs to match the food to an order, so the number and the
+         place it is going stay on. Everything else about the sale does not. --}}
+    <p class="text-center font-mono text-base font-bold">{{ $order->order_number }}</p>
+
+    <p class="text-center text-sm font-semibold">
+        {{ $order->type->label() }}@if ($order->table) · {{ $order->table->name }}@endif
+    </p>
+
+    <p class="text-center text-sm">
+        {{ ($order->completed_at ?? $order->created_at)->format('d M Y, g:i A') }}
+    </p>
+
+    <div class="my-3 border-t border-dashed border-slate-400"></div>
+
+    <table class="w-full text-base">
+        <tbody>
+            @foreach ($order->items as $item)
+                <tr class="align-top">
+                    <td class="py-1 pr-2 text-right font-mono font-bold">{{ $item->quantity }}</td>
+                    <td class="py-1 pr-2 font-semibold">
+                        {{ $item->name }}
+                        {{-- A note is an instruction to the cook, so it belongs
+                             here more than anywhere else on the roll. --}}
+                        @if ($item->note)
+                            <span class="block text-sm font-normal italic">{{ $item->note }}</span>
+                        @endif
+                    </td>
+                    <td class="py-1 text-right font-mono">{{ number_format((float) $item->line_total, 2) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    @if ($order->status === App\Enums\OrderStatus::Cancelled)
+        <p class="mt-3 text-center text-base font-bold uppercase">*** Cancelled — do not cook ***</p>
+    @endif
+</div>
+
 @if ($justCompleted)
     {{-- Straight off the checkout screen: send it to the printer immediately,
          the way a counter terminal is expected to behave. --}}

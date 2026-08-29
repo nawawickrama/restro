@@ -263,6 +263,14 @@
         max-width: 80mm !important;
     }
 
+    /* The kitchen's copy rides the same print job as the customer's bill, so
+       it needs a break between them — that is what tells the printer to cut,
+       and what stops the two slips running together on one length of paper. */
+    .kitchen-ticket {
+        break-before: page;
+        margin-top: 0 !important;
+    }
+
     /* A report goes on ordinary paper, not an 80mm till roll. */
     .report-sheet {
         margin: 0 !important;
