@@ -85,6 +85,20 @@ class OrderPolicy
             : Response::deny("This order is {$order->status->value} and can no longer be edited.");
     }
 
+    /**
+     * Erasing the record, money and all.
+     *
+     * No state check: a completed order is exactly the one this is usually
+     * wanted for — a mistake rung up and paid for that has to come back out of
+     * the day's takings. The permission is the whole of the guard.
+     */
+    public function delete(User $user, Order $order): Response
+    {
+        return $user->can(Permissions::DELETE_ORDERS)
+            ? Response::allow()
+            : Response::deny('You are not allowed to delete orders.');
+    }
+
     public function printReceipt(User $user, Order $order): bool
     {
         return $user->can(Permissions::PRINT_RECEIPTS);

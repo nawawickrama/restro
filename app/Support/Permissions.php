@@ -26,6 +26,17 @@ final class Permissions
 
     public const PRINT_RECEIPTS = 'print_receipts';
 
+    /**
+     * Erasing a sale outright, as opposed to cancelling it.
+     *
+     * Held apart from CANCEL_ORDERS because the two are not the same act: a
+     * cancelled order stays on the books as a cancelled order, while a deleted
+     * one leaves no trace and takes its money out of every figure. That is the
+     * classic route for till theft, so it is deliberately not a cashier's to
+     * hold — grant it from the users screen if somebody needs it.
+     */
+    public const DELETE_ORDERS = 'delete_orders';
+
     public const MANAGE_MENU = 'manage_menu';
 
     public const MANAGE_TABLES = 'manage_tables';
@@ -58,6 +69,7 @@ final class Permissions
             self::APPLY_DISCOUNTS,
             self::VIEW_ORDERS,
             self::PRINT_RECEIPTS,
+            self::DELETE_ORDERS,
             self::MANAGE_MENU,
             self::MANAGE_TABLES,
             self::MANAGE_USERS,

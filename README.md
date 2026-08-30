@@ -153,6 +153,18 @@ line. See [Setting up the customer display](#setting-up-the-customer-display).
 reference. Nothing completes without a payment that covers the total.
 
 **Receipts** — 80mm printable, auto-printed straight after checkout, reprintable from history.
+Each one prints the kitchen its own copy on the same job: items, quantities, prices and the time,
+plus the order number and table so the food can be matched to a bill. No logo, no totals.
+
+**Deleting an order** — An order can be erased outright from its detail page, which is different
+from cancelling it: a cancelled order stays on the books as cancelled, while a deleted one leaves
+no trace. Its items and payments go with it, and because every figure is aggregated live from
+those tables, the money leaves the reports, the dashboard and the customer's history in the same
+stroke. There is no undo.
+
+It sits behind its own permission, `delete_orders`, which **a cashier does not get by default** —
+erasing sales is the usual route for till theft, so it has to be granted deliberately from the
+users screen. Cancel an order instead when you want the record kept.
 
 **Order history** — A sortable, paged table built to stay quick as the years pile up: quick date
 ranges, a custom range, filters for type/status/payment, and search by order number, mobile or

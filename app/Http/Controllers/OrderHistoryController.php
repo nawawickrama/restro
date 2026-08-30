@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Queries\OrderHistoryFilters;
 use App\Queries\OrderHistoryQuery;
+use App\Services\OrderService;
 use App\Support\Permissions;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -18,7 +20,10 @@ use Illuminate\View\View;
  */
 class OrderHistoryController extends Controller
 {
-    public function __construct(private readonly OrderHistoryQuery $history) {}
+    public function __construct(
+        private readonly OrderHistoryQuery $history,
+        private readonly OrderService $orders,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -45,6 +50,25 @@ class OrderHistoryController extends Controller
         $order->load(['items', 'table', 'user', 'payments.user']);
 
         return view('orders.show', compact('order'));
+    }
+
+    /**
+     * Erase an order and everything it was worth.
+     *
+     * There is no undo — the row is gone, and with it the money it contributed
+     * to every report. The confirmation on the way in is the only safeguard,
+     * which is why the permission behind it is not a cashier's by default.
+     */
+    public function destroy(Order $order): RedirectResponse
+    {
+        $this->authorize('delete', $order);
+
+        $destroyed = $this->orders->delete($order);
+
+        return redirect()->route('orders.index')->with(
+            'status',
+            "Order {$destroyed['number']} deleted. ".money($destroyed['total']).' has been taken out of sales.',
+        );
     }
 
     /** The printable receipt, also used for reprints from history. */

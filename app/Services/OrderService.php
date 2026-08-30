@@ -335,6 +335,40 @@ class OrderService
         });
     }
 
+    /**
+     * Erase an order outright, as though it had never been rung up.
+     *
+     * Different from {@see cancel()} in kind, not degree: cancelling leaves the
+     * order on the books with a cancelled status, while this removes the row.
+     * Its lines and payments go with it — both tables cascade on delete — and
+     * because every figure in this application is aggregated live from those
+     * three tables, the money leaves the reports, the dashboard and the
+     * customer's history in the same stroke. Nothing is cached, so nothing has
+     * to be recomputed afterwards.
+     *
+     * A dine-in table is freed as a side effect, the same way cancelling frees
+     * it: occupancy is derived from open dine-in orders, and this one is gone.
+     *
+     * Returns what was destroyed, so the caller can say so — after this call
+     * the model is all that is left of it.
+     *
+     * @return array{number: string, total: float, items: int}
+     */
+    public function delete(Order $order): array
+    {
+        $destroyed = [
+            'number' => (string) $order->order_number,
+            'total' => (float) $order->total,
+            'items' => (int) $order->items()->sum('quantity'),
+        ];
+
+        DB::transaction(function () use ($order): void {
+            $order->delete();
+        });
+
+        return $destroyed;
+    }
+
     /** Phone orders only: pending -> ready -> collected. */
     public function setFulfillmentStatus(Order $order, FulfillmentStatus $status): void
     {

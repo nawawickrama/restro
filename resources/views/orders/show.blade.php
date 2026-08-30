@@ -22,6 +22,22 @@
                 <x-btn :href="route('pos.orders.show', $order)" variant="success">Continue order</x-btn>
             @endcan
         @endif
+
+        {{-- Kept last and behind its own permission. The message says the sum
+             out loud, because that figure leaving the reports is the part
+             nobody can undo. --}}
+        @can('delete', $order)
+            <x-confirm-form :action="route('orders.destroy', $order)"
+                            method="DELETE"
+                            title="Delete {{ $order->order_number }}?"
+                            message="This erases the order for good — its items and payments go with it, and {{ money($order->total) }} comes out of sales, the reports and the customer's history. There is no undo. To keep it on the books instead, cancel it."
+                            confirm="Delete permanently">
+                <x-slot:trigger>
+                    <x-icon name="trash" class="size-5"/>
+                    Delete
+                </x-slot:trigger>
+            </x-confirm-form>
+        @endcan
     </x-slot:actions>
 
     <div class="grid gap-6 lg:grid-cols-3">

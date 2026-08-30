@@ -93,6 +93,12 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('orders/{order}', [OrderHistoryController::class, 'show'])->name('orders.show');
     });
 
+    // Erasing a sale is its own permission, deliberately not a cashier's: a
+    // cancelled order stays on the books, a deleted one leaves no trace.
+    Route::delete('orders/{order}', [OrderHistoryController::class, 'destroy'])
+        ->middleware('permission:'.Permissions::DELETE_ORDERS)
+        ->name('orders.destroy');
+
     Route::get('orders/{order}/receipt', [OrderHistoryController::class, 'receipt'])
         ->middleware('permission:'.Permissions::PRINT_RECEIPTS)
         ->name('orders.receipt');
