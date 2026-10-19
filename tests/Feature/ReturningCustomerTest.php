@@ -33,7 +33,7 @@ class ReturningCustomerTest extends TestCase
             'source' => CustomerSource::Manual,
         ]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
@@ -65,7 +65,7 @@ class ReturningCustomerTest extends TestCase
             'phone_digits' => '0771234567',
         ]);
 
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
@@ -87,7 +87,7 @@ class ReturningCustomerTest extends TestCase
             'phone_digits' => '0771234567',
         ]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
@@ -158,7 +158,7 @@ class ReturningCustomerTest extends TestCase
     {
         $cashier = $this->cashier();
 
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->get(route('pos.orders.show', $order))

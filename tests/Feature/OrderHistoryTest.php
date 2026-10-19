@@ -178,7 +178,7 @@ class OrderHistoryTest extends TestCase
     public function test_search_finds_an_order_by_number_phone_or_name(): void
     {
         $cashier = $this->cashier();
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
@@ -291,7 +291,7 @@ class OrderHistoryTest extends TestCase
         $cashier = $this->cashier();
         $table = RestaurantTable::factory()->create(['name' => 'Table 9']);
 
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
 
         $this->actingAs($this->admin())->get(route('orders.index', ['range' => 'all']))
             ->assertOk()

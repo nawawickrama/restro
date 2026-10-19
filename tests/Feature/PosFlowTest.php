@@ -31,20 +31,25 @@ class PosFlowTest extends TestCase
             ->assertSee('Table 1')
             ->assertSee('DINE IN');
 
-        // Tapping the table opens an order and occupies it.
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table))->assertRedirect();
+        // Tapping the table shows its order screen, but writes nothing yet.
+        $this->actingAs($cashier)->get(route('pos.tables.show', $table))->assertOk()->assertSee('New order');
+        $this->assertSame(0, Order::query()->count());
+        $this->assertTrue($table->fresh()->isAvailable());
+
+        // The first item is what opens the order and occupies the table.
+        $opened = $this->actingAs($cashier)
+            ->postJson(route('pos.tables.store', $table), ['menu_item_id' => $burger->id, 'quantity' => 2])
+            ->assertCreated();
 
         $order = Order::query()->sole();
+        $opened->assertJsonPath('redirect', route('pos.orders.show', $order));
         $this->assertSame(OrderType::DineIn, $order->type);
-
-        $this->actingAs($cashier)
-            ->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $burger->id, 'quantity' => 2])
-            ->assertOk()
-            ->assertJsonPath('order.formatted.total', 'Rs. 1,900.00')
-            ->assertJsonPath('order.items.0.quantity', 2);
+        $this->assertSame(2, $order->items()->sole()->quantity);
+        $this->assertSame('1900.00', $order->total);
+        $this->assertFalse($table->fresh()->isAvailable());
 
         // Tapping the same table again returns to the running order.
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table))
+        $this->actingAs($cashier)->get(route('pos.tables.show', $table))
             ->assertRedirect(route('pos.orders.show', $order));
 
         $this->actingAs($cashier)->get(route('pos.orders.checkout', $order))->assertOk();
@@ -70,15 +75,14 @@ class PosFlowTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 450]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'))->assertRedirect();
+        $this->actingAs($cashier)->get(route('pos.takeaway.create'))->assertOk();
+        $this->actingAs($cashier)
+            ->postJson(route('pos.takeaway.store'), ['menu_item_id' => $item->id])
+            ->assertCreated();
 
         $order = Order::query()->sole();
         $this->assertSame(OrderType::Takeaway, $order->type);
         $this->assertNull($order->customer_name);
-
-        $this->actingAs($cashier)
-            ->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id])
-            ->assertOk();
 
         $this->actingAs($cashier)->post(route('pos.orders.checkout.store', $order), [
             'method' => PaymentMethod::Card->value,
@@ -93,16 +97,16 @@ class PosFlowTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 600]);
 
-        $this->actingAs($cashier)->post(route('pos.phone.store'))->assertRedirect();
+        // The items go on while the customer is still talking; the first one
+        // opens the order.
+        $this->actingAs($cashier)->get(route('pos.phone.create'))->assertOk();
+        $this->actingAs($cashier)
+            ->postJson(route('pos.phone.store'), ['menu_item_id' => $item->id])
+            ->assertCreated();
 
         $order = Order::query()->sole();
         $this->assertSame(OrderType::PhoneTakeaway, $order->type);
         $this->assertNull($order->customer_phone);
-
-        // The items go on while the customer is still talking.
-        $this->actingAs($cashier)
-            ->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id])
-            ->assertOk();
 
         // Checkout is closed off until a number has been taken.
         $this->actingAs($cashier)->get(route('pos.orders.checkout', $order))->assertForbidden();
@@ -130,7 +134,7 @@ class PosFlowTest extends TestCase
     public function test_a_phone_order_keeps_the_name_when_one_is_given(): void
     {
         $cashier = $this->cashier();
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
@@ -150,7 +154,7 @@ class PosFlowTest extends TestCase
         $cashier = $this->cashier();
         $table = RestaurantTable::factory()->create();
 
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
         $dineIn = Order::query()->sole();
 
         // A name alone is accepted; no number needed.
@@ -161,7 +165,7 @@ class PosFlowTest extends TestCase
         $this->assertSame('Nimal', $dineIn->fresh()->customer_name);
 
         // Saving nothing at all is fine too.
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $takeaway = Order::query()->latest('id')->first();
 
         $this->actingAs($cashier)->post(route('pos.orders.customer', $takeaway), [])
@@ -176,7 +180,7 @@ class PosFlowTest extends TestCase
         $cashier = $this->cashier();
         $table = RestaurantTable::factory()->create();
 
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
         $dineIn = Order::query()->sole();
 
         $this->actingAs($cashier)->get(route('pos.orders.show', $dineIn))
@@ -186,7 +190,7 @@ class PosFlowTest extends TestCase
             // The mandatory phone-order prompt must not appear here.
             ->assertDontSee('Needed before checkout');
 
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $phone = Order::query()->latest('id')->first();
 
         $this->actingAs($cashier)->get(route('pos.orders.show', $phone))
@@ -197,7 +201,7 @@ class PosFlowTest extends TestCase
     public function test_a_phone_order_moves_through_its_collection_stages(): void
     {
         $cashier = $this->cashier();
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
 
         $order = Order::query()->sole();
 
@@ -211,7 +215,7 @@ class PosFlowTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 200]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)
@@ -241,7 +245,7 @@ class PosFlowTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 100]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id]);
@@ -260,17 +264,26 @@ class PosFlowTest extends TestCase
         $table = RestaurantTable::factory()->create();
 
         // Occupy the table with someone else's order.
-        $this->actingAs($this->cashier())->post(route('pos.tables.select', $table));
+        $this->openTable($table, $this->cashier());
 
         // Tapping a busy table opens the running order rather than refusing.
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table))
+        $this->actingAs($cashier)->get(route('pos.tables.show', $table))
             ->assertRedirect(route('pos.orders.show', Order::query()->sole()));
+
+        // If it was taken while this cashier was on its order screen, their
+        // first item is refused with a message and no second order opens.
+        $this->actingAs($cashier)
+            ->postJson(route('pos.tables.store', $table), ['menu_item_id' => MenuItem::factory()->create()->id])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', fn (string $message) => str_contains($message, 'already has an open order'));
+
+        $this->assertSame(1, Order::query()->count());
     }
 
     public function test_the_order_history_can_be_filtered(): void
     {
         $cashier = $this->cashier();
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->get(route('orders.index'))

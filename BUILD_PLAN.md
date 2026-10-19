@@ -73,7 +73,7 @@ arithmetic anywhere**. On phones the order panel collapses to a summary bar.
 ### Phase 5 — Dine-in orders
 
 Tapping a table either opens its running order or starts a new one, so a cashier never has to
-think about which of the two they are doing (`PosController::selectTable`).
+think about which of the two they are doing (`OrderScreenController::table`).
 Moving an order between tables is supported; reservations are not (out of scope).
 
 ### Phase 6 — Takeaway (walk-in)
@@ -82,8 +82,8 @@ One button, no customer details, straight to the order screen.
 
 ### Phase 7 — Phone takeaway
 
-Tapping PHONE ORDER opens an empty order and goes straight to the order screen, because on a
-real call the customer reads out their food long before they give a number. Contact details are
+Tapping PHONE ORDER goes straight to the order screen, and the first dish read out opens the
+order, because on a real call the customer reads out their food long before they give a number. Contact details are
 captured afterwards from a panel in the order pane: **mobile number required, name optional**,
 plus an optional note. Details are stored on the order itself — no customer accounts, no CRM.
 
@@ -227,11 +227,20 @@ and the tests therefore run on MySQL rather than SQLite.
 
 **Phone orders are validated at checkout, not at creation.** The spec asks that a phone order
 store the customer's name and mobile number. Requiring both up front fights the actual phone
-call, so the order opens empty and the rule moves to the point where it matters: an order
+call, so the order opens without them and the rule moves to the point where it matters: an order
 cannot be *completed* without a mobile number (`CheckoutService`, `OrderPolicy::checkout`, and
 `Order::needsCustomerPhone()` which greys out the checkout button). The name is optional
 throughout — plenty of callers never give one, and the number is what the counter uses to find
 them anyway.
+
+**An order is created by its first item, not by opening the screen.** Choosing a sale type or a
+free table shows the order screen with nothing written (`OrderScreenController::createTakeaway`
+and its siblings); the first item tapped posts to the matching store route, and
+`OrderService::startWith` creates the order and that line in one transaction. Cashiers use the
+order screen to look up prices as often as to sell, and when the order came first, every look
+left an empty open order behind — about a thousand before anyone noticed. A migration cleared
+those out. An order can still end up empty if every line is taken off it again; that one is
+left alone, because it was a real order with a number.
 
 **Order history is written for five years of rows.** Measured on 36,600 orders — one year at
 100 a day — on the test database:

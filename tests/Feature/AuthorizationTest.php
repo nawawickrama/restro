@@ -74,7 +74,7 @@ class AuthorizationTest extends TestCase
     public function test_a_cashier_cannot_cancel_an_order_without_the_permission(): void
     {
         $cashier = $this->cashier();
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->post(route('pos.orders.cancel', $order))->assertForbidden();
@@ -85,7 +85,7 @@ class AuthorizationTest extends TestCase
     public function test_granting_the_cancel_permission_is_all_it_takes(): void
     {
         $cashier = $this->cashier();
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $cashier->givePermissionTo(Permissions::CANCEL_ORDERS);
@@ -100,7 +100,7 @@ class AuthorizationTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 1000]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id]);
 
@@ -115,7 +115,7 @@ class AuthorizationTest extends TestCase
         $admin = $this->admin();
         $item = MenuItem::factory()->create(['price' => 1000]);
 
-        $this->actingAs($admin)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($admin);
         $order = Order::query()->sole();
         $this->actingAs($admin)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id]);
 

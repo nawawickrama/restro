@@ -6,10 +6,14 @@ use App\Enums\FulfillmentStatus;
 use App\Enums\OrderType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderCustomerRequest;
+use App\Http\Requests\StoreOrderItemRequest;
+use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\RestaurantTable;
 use App\Models\User;
 use App\Services\OrderService;
+use Closure;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +23,10 @@ use Illuminate\View\View;
 /**
  * The front door of the POS: pick a sale type, then get taken straight to an
  * order screen. Three taps at most from opening the app to adding food.
+ *
+ * The order itself is only created by the first item tapped on that screen,
+ * through the store methods here, so opening it to check the menu writes
+ * nothing.
  */
 class PosController extends Controller
 {
@@ -50,45 +58,33 @@ class PosController extends Controller
     }
 
     /**
-     * Tapping a table either opens its running order or starts a new one, so a
-     * cashier never has to think about which of the two they are doing.
+     * The first item tapped at a free table, which is what opens its order and
+     * occupies it. {@see OrderScreenController::table()} shows the screen it is
+     * tapped on.
      */
-    public function selectTable(RestaurantTable $table): RedirectResponse
+    public function storeAtTable(StoreOrderItemRequest $request, RestaurantTable $table): JsonResponse|RedirectResponse
     {
-        $existing = $table->activeOrder()->first();
-
-        if ($existing) {
-            return redirect()->route('pos.orders.show', $existing);
-        }
-
         $this->authorize('create', Order::class);
 
-        $order = $this->orders->startDineIn($table, $this->user());
-
-        return redirect()->route('pos.orders.show', $order);
+        return $this->open($request, fn (): Order => $this->orders->startDineIn($table, $this->user()));
     }
 
-    public function storeTakeaway(): RedirectResponse
+    public function storeTakeaway(StoreOrderItemRequest $request): JsonResponse|RedirectResponse
     {
         $this->authorize('create', Order::class);
 
-        $order = $this->orders->startTakeaway($this->user());
-
-        return redirect()->route('pos.orders.show', $order);
+        return $this->open($request, fn (): Order => $this->orders->startTakeaway($this->user()));
     }
 
     /**
-     * A phone order opens empty and goes straight to the order screen: on a
-     * call the customer reads out their food first and gives their number
-     * afterwards. {@see self::updateCustomer()} captures the details.
+     * A phone order opens with the first dish the caller reads out; their
+     * number is taken afterwards by {@see self::updateCustomer()}.
      */
-    public function storePhoneOrder(): RedirectResponse
+    public function storePhoneOrder(StoreOrderItemRequest $request): JsonResponse|RedirectResponse
     {
         $this->authorize('create', Order::class);
 
-        $order = $this->orders->startPhoneOrder($this->user());
-
-        return redirect()->route('pos.orders.show', $order);
+        return $this->open($request, fn (): Order => $this->orders->startPhoneOrder($this->user()));
     }
 
     public function updateCustomer(OrderCustomerRequest $request, Order $order): RedirectResponse
@@ -149,6 +145,30 @@ class PosController extends Controller
                 'phone_digits' => preg_replace('/\D/', '', (string) $order->customer_phone),
             ];
         })->values();
+    }
+
+    /**
+     * Open an order by its first item and send the screen on to it.
+     *
+     * The order screen calls this over fetch, so it answers with where to go
+     * rather than a redirect the browser would follow out of sight.
+     *
+     * @param  Closure(): Order  $start
+     */
+    private function open(StoreOrderItemRequest $request, Closure $start): JsonResponse|RedirectResponse
+    {
+        $order = $this->orders->startWith(
+            $start,
+            MenuItem::query()->findOrFail($request->integer('menu_item_id')),
+            $request->integer('quantity') ?: 1,
+            $request->input('note'),
+        );
+
+        $url = route('pos.orders.show', $order);
+
+        return $request->expectsJson()
+            ? response()->json(['redirect' => $url], 201)
+            : redirect($url);
     }
 
     private function user(): User

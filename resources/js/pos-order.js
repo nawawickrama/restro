@@ -4,7 +4,15 @@
  * Every tap talks to the server and the server sends the whole order back, so
  * the totals on screen are always the totals the database believes in. There is
  * no client-side price arithmetic anywhere in this file, on purpose.
+ *
+ * A new sale opens this screen before its order exists. The first item tapped
+ * creates the order, and the server answers that one with the order's own
+ * address instead of the order itself; the screen moves there and carries on.
  */
+
+// Where the menu was left when the first item moved the screen to its order.
+const MENU_KEY = 'restro-pos-menu';
+
 export default function posOrder({ order, categories, endpoints, currency }) {
     return {
         order,
@@ -20,9 +28,42 @@ export default function posOrder({ order, categories, endpoints, currency }) {
         noteText: '',
 
         init() {
+            this.restoreMenu();
+
             // Mirror the order onto the customer's screen straight away, so a
             // display opened mid-order catches up rather than showing idle.
             this.mirror();
+        },
+
+        /**
+         * Put the menu back where it was before the first item opened the
+         * order, so the move to the order's own screen goes unnoticed.
+         * Storage can be unavailable; the menu then simply starts at the top.
+         */
+        restoreMenu() {
+            try {
+                const saved = JSON.parse(sessionStorage.getItem(MENU_KEY) ?? 'null');
+                sessionStorage.removeItem(MENU_KEY);
+
+                if (saved?.category && this.categories.some((c) => c.id === saved.category)) {
+                    this.activeCategory = saved.category;
+                }
+
+                this.search = saved?.search ?? '';
+            } catch {
+                // Nothing to restore.
+            }
+        },
+
+        rememberMenu() {
+            try {
+                sessionStorage.setItem(MENU_KEY, JSON.stringify({
+                    category: this.activeCategory,
+                    search: this.search,
+                }));
+            } catch {
+                // The menu will start at the top instead.
+            }
         },
 
         /**
@@ -121,6 +162,10 @@ export default function posOrder({ order, categories, endpoints, currency }) {
             this.busy = true;
             this.error = '';
 
+            // Stays busy while the page moves to a newly opened order, so a
+            // second tap cannot open a second one.
+            let leaving = false;
+
             try {
                 const response = await fetch(url, {
                     method,
@@ -141,12 +186,22 @@ export default function posOrder({ order, categories, endpoints, currency }) {
                     return;
                 }
 
+                if (payload.redirect) {
+                    leaving = true;
+                    this.rememberMenu();
+                    window.location.replace(payload.redirect);
+
+                    return;
+                }
+
                 this.order = payload.order;
                 this.mirror();
             } catch {
                 this.error = 'Connection lost. Check the network and try again.';
             } finally {
-                this.busy = false;
+                if (!leaving) {
+                    this.busy = false;
+                }
             }
         },
     };

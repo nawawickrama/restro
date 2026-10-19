@@ -21,7 +21,7 @@ class ReceiptTest extends TestCase
         $tea = MenuItem::factory()->create(['name' => 'Plain Tea', 'price' => 150]);
         $rice = MenuItem::factory()->create(['name' => 'Kottu', 'price' => 900]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $tea->id]);
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), [

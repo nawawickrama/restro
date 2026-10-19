@@ -31,8 +31,8 @@ class OrderDeletionTest extends TestCase
         $item = MenuItem::factory()->create(['price' => $price]);
 
         $table
-            ? $this->actingAs($cashier)->post(route('pos.tables.select', $table))
-            : $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+            ? $this->openTable($table, $cashier)
+            : $this->openTakeaway($cashier);
 
         $order = Order::query()->latest('id')->sole();
 
@@ -117,14 +117,14 @@ class OrderDeletionTest extends TestCase
         $table = RestaurantTable::factory()->create();
         $cashier = $this->cashier();
 
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
         $order = Order::query()->latest('id')->sole();
 
         $this->actingAs($this->admin())->delete(route('orders.destroy', $order));
 
         $this->assertDatabaseMissing('orders', ['id' => $order->id]);
 
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
         $this->assertSame(1, Order::query()->where('table_id', $table->id)->open()->count());
     }
 
@@ -196,7 +196,7 @@ class OrderDeletionTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 700]);
 
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $order = Order::query()->latest('id')->sole();
 
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id]);

@@ -22,7 +22,7 @@ class OpenOrderSearchTest extends TestCase
     {
         $cashier = $this->cashier();
 
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $phoneOrder = Order::query()->sole();
         $this->actingAs($cashier)->post(route('pos.orders.customer', $phoneOrder), [
             'customer_phone' => '077 123 4567',
@@ -49,7 +49,7 @@ class OpenOrderSearchTest extends TestCase
     public function test_a_walk_in_takeaway_is_searchable_by_its_number_and_type(): void
     {
         $cashier = $this->cashier();
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $payload = $this->actingAs($cashier)->get(route('pos.home'))->viewData('openOrdersPayload')->first();
@@ -67,10 +67,10 @@ class OpenOrderSearchTest extends TestCase
         $table = RestaurantTable::factory()->create();
 
         // A dine-in order belongs to the table plan, not this list.
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
 
         // A completed takeaway has left the counter.
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $done = Order::query()->latest('id')->first();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $done), ['menu_item_id' => $item->id]);
         $this->actingAs($cashier)->post(route('pos.orders.checkout.store', $done), [
@@ -78,7 +78,7 @@ class OpenOrderSearchTest extends TestCase
         ]);
 
         // This one is still waiting.
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $waiting = Order::query()->latest('id')->first();
 
         $payload = $this->actingAs($cashier)->get(route('pos.home'))->viewData('openOrdersPayload');
@@ -97,7 +97,7 @@ class OpenOrderSearchTest extends TestCase
         $item = MenuItem::factory()->create(['price' => 250]);
 
         foreach (range(1, 5) as $ignored) {
-            $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+            $this->openTakeaway($cashier);
             $order = Order::query()->latest('id')->first();
             $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), [
                 'menu_item_id' => $item->id, 'quantity' => 3,

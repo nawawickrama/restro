@@ -51,7 +51,7 @@ class CustomerDisplayTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['name' => 'Chicken Burger', 'price' => 950]);
 
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
             'customer_phone' => '0771234567',
@@ -124,7 +124,7 @@ class CustomerDisplayTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 2500]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), [
             'menu_item_id' => $item->id,
@@ -154,7 +154,7 @@ class CustomerDisplayTest extends TestCase
         $item = MenuItem::factory()->create(['price' => 500]);
         $table = RestaurantTable::factory()->create();
 
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), [
             'menu_item_id' => $item->id,
@@ -179,7 +179,7 @@ class CustomerDisplayTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 500]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), [
             'menu_item_id' => $item->id,
@@ -204,7 +204,7 @@ class CustomerDisplayTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 1200]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), [
             'menu_item_id' => $item->id,

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\Enums\OrderStatus;
+use App\Enums\OrderType;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderItemRequest;
 use App\Http\Requests\UpdateOrderItemRequest;
@@ -12,6 +15,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\RestaurantTable;
 use App\Services\OrderService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,19 +42,47 @@ class OrderScreenController extends Controller
 
         $order->load(['items', 'table']);
 
-        $categories = Category::query()
-            ->active()
-            ->ordered()
-            ->with(['activeMenuItems'])
-            ->get()
-            ->filter(fn (Category $category) => $category->activeMenuItems->isNotEmpty())
-            ->values();
+        return $this->screen($order);
+    }
 
-        $tables = $order->type->usesTable()
-            ? RestaurantTable::query()->active()->ordered()->with('activeOrder')->get()
-            : collect();
+    /**
+     * The order screen before there is an order.
+     *
+     * Opening a sale used to create its order on the spot, so looking up a
+     * price or searching the menu from here left an empty order behind every
+     * time. Now nothing is written until the first item is tapped: that tap
+     * opens the order ({@see PosController::storeTakeaway()} and its
+     * siblings) and the screen carries on from the real one.
+     */
+    public function createTakeaway(): View
+    {
+        $this->authorize('create', Order::class);
 
-        return view('pos.order', compact('order', 'categories', 'tables'));
+        return $this->screen($this->unopened(OrderType::Takeaway), route('pos.takeaway.store'));
+    }
+
+    public function createPhoneOrder(): View
+    {
+        $this->authorize('create', Order::class);
+
+        return $this->screen($this->unopened(OrderType::PhoneTakeaway), route('pos.phone.store'));
+    }
+
+    /**
+     * Tapping a table either opens its running order or starts a new one, so a
+     * cashier never has to think about which of the two they are doing.
+     */
+    public function table(RestaurantTable $table): View|RedirectResponse
+    {
+        $existing = $table->activeOrder()->first();
+
+        if ($existing) {
+            return redirect()->route('pos.orders.show', $existing);
+        }
+
+        $this->authorize('create', Order::class);
+
+        return $this->screen($this->unopened(OrderType::DineIn, $table), route('pos.tables.store', $table));
     }
 
     public function storeItem(StoreOrderItemRequest $request, Order $order): JsonResponse
@@ -141,6 +173,45 @@ class OrderScreenController extends Controller
 
         return redirect()->route('pos.home')
             ->with('status', "Order {$order->order_number} is still open.");
+    }
+
+    /**
+     * @param  string|null  $startUrl  where the first item goes while the order
+     *                                 does not exist yet
+     */
+    private function screen(Order $order, ?string $startUrl = null): View
+    {
+        $categories = Category::query()
+            ->active()
+            ->ordered()
+            ->with(['activeMenuItems'])
+            ->get()
+            ->filter(fn (Category $category) => $category->activeMenuItems->isNotEmpty())
+            ->values();
+
+        // Only moving the order needs the table plan, and an order that does
+        // not exist yet has nowhere to be moved from.
+        $tables = $order->exists && $order->type->usesTable()
+            ? RestaurantTable::query()->active()->ordered()->with('activeOrder')->get()
+            : collect();
+
+        return view('pos.order', compact('order', 'categories', 'tables', 'startUrl'));
+    }
+
+    /** An order as the screen shows it before anything is on it. Never saved. */
+    private function unopened(OrderType $type, ?RestaurantTable $table = null): Order
+    {
+        return (new Order([
+            'type' => $type,
+            'status' => OrderStatus::Open,
+            'payment_status' => PaymentStatus::Unpaid,
+            'subtotal' => 0,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'total' => 0,
+        ]))
+            ->setRelation('items', new EloquentCollection)
+            ->setRelation('table', $table);
     }
 
     private function orderJson(Order $order): JsonResponse

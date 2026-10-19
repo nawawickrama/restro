@@ -14,16 +14,22 @@
         ])->values(),
     ])->values();
 
-    $endpoints = [
+    // Until the first item is tapped there is no order, only this screen. That
+    // tap goes to $startUrl, which opens the order and moves the screen to it.
+    $endpoints = $order->exists ? [
         'addItem' => route('pos.orders.items.store', $order),
         'updateItem' => route('pos.orders.items.update', [$order, '__ITEM__']),
         'removeItem' => route('pos.orders.items.destroy', [$order, '__ITEM__']),
+    ] : [
+        'addItem' => $startUrl,
     ];
+
+    $heading = $order->order_number ?? 'New order';
 @endphp
 
-<x-layouts.pos :title="$order->order_number"
+<x-layouts.pos :title="$heading"
                :back="route('pos.home')"
-               :heading="$order->order_number"
+               :heading="$heading"
                :subheading="$order->type->label().' · '.$order->customerLabel()">
 
     <div x-data="posOrder({
@@ -202,7 +208,11 @@
 
                 {{-- Totals and the two actions that end the screen --}}
                 <div class="shrink-0 space-y-4 border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                    @include('pos.partials.customer-details')
+                    {{-- Customer details and the order's own actions all act on
+                         an order, so they appear once the first item opens one. --}}
+                    @if ($order->exists)
+                        @include('pos.partials.customer-details')
+                    @endif
 
                     <dl class="space-y-1 text-base">
                         <div class="flex justify-between text-slate-600 dark:text-slate-300">
@@ -227,31 +237,35 @@
                         </div>
                     </dl>
 
-                    @include('pos.partials.order-actions')
+                    @if ($order->exists)
+                        @include('pos.partials.order-actions')
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <form action="{{ route('pos.orders.hold', $order) }}" method="POST">
-                            @csrf
-                            <x-btn variant="secondary" size="lg" class="w-full">Hold</x-btn>
-                        </form>
+                        <div class="grid grid-cols-2 gap-3">
+                            <form action="{{ route('pos.orders.hold', $order) }}" method="POST">
+                                @csrf
+                                <x-btn variant="secondary" size="lg" class="w-full">Hold</x-btn>
+                            </form>
 
-                        {{-- A phone order without a number cannot be paid for,
-                             so the button says what is missing instead of
-                             failing at the checkout screen. --}}
-                        @if ($order->needsCustomerPhone())
-                            <x-btn variant="secondary" size="lg" class="w-full" disabled>
-                                Number needed
-                            </x-btn>
-                        @else
-                            <x-btn :href="route('pos.orders.checkout', $order)"
-                                   variant="success"
-                                   size="lg"
-                                   class="w-full"
-                                   x-bind:class="isEmpty ? 'pointer-events-none opacity-50' : ''">
-                                Checkout
-                            </x-btn>
-                        @endif
-                    </div>
+                            {{-- A phone order without a number cannot be paid for,
+                                 so the button says what is missing instead of
+                                 failing at the checkout screen. --}}
+                            @if ($order->needsCustomerPhone())
+                                <x-btn variant="secondary" size="lg" class="w-full" disabled>
+                                    Number needed
+                                </x-btn>
+                            @else
+                                <x-btn :href="route('pos.orders.checkout', $order)"
+                                       variant="success"
+                                       size="lg"
+                                       class="w-full"
+                                       x-bind:class="isEmpty ? 'pointer-events-none opacity-50' : ''">
+                                    Checkout
+                                </x-btn>
+                            @endif
+                        </div>
+                    @else
+                        <x-btn variant="success" size="lg" class="w-full" disabled>Checkout</x-btn>
+                    @endif
                 </div>
             </div>
         </aside>

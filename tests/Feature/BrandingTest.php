@@ -36,7 +36,7 @@ class BrandingTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 400]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id]);
         $this->actingAs($cashier)->post(route('pos.orders.checkout.store', $order), [
@@ -69,7 +69,7 @@ class BrandingTest extends TestCase
 
         $this->assertSame('', app(SettingsService::class)->get('software_credit'));
 
-        $this->actingAs($admin)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($admin);
         $order = Order::query()->sole();
         $this->actingAs($admin)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id]);
 

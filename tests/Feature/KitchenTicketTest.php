@@ -26,8 +26,8 @@ class KitchenTicketTest extends TestCase
         $cashier = $this->cashier();
 
         $table
-            ? $this->actingAs($cashier)->post(route('pos.tables.select', $table))
-            : $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+            ? $this->openTable($table, $cashier)
+            : $this->openTakeaway($cashier);
 
         $order = Order::query()->latest('id')->sole();
 

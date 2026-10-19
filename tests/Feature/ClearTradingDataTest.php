@@ -29,7 +29,7 @@ class ClearTradingDataTest extends TestCase
         $item = MenuItem::factory()->create(['price' => 500]);
 
         // A completed sale, so orders, items, payments and a customer all exist.
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), ['customer_phone' => '0771234567']);
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id]);

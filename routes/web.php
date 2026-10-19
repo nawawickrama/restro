@@ -60,11 +60,17 @@ Route::middleware(['auth', 'active'])->group(function () {
         // by the cashier's window rather than by this route.
         Route::get('display', CustomerDisplayController::class)->name('display');
 
-        Route::post('tables/{table}', [PosController::class, 'selectTable'])->name('tables.select');
+        // Each sale type opens the order screen with nothing written yet; the
+        // first item tapped there is posted to the matching store route, which
+        // creates the order and that item together.
+        Route::get('tables/{table}', [OrderScreenController::class, 'table'])->name('tables.show');
+        Route::post('tables/{table}', [PosController::class, 'storeAtTable'])->name('tables.store');
+        Route::get('takeaway', [OrderScreenController::class, 'createTakeaway'])->name('takeaway.create');
         Route::post('takeaway', [PosController::class, 'storeTakeaway'])->name('takeaway.store');
 
         // Recognises a returning customer from their number as it is typed.
         Route::get('customer-lookup', CustomerLookupController::class)->name('customer.lookup');
+        Route::get('phone-order', [OrderScreenController::class, 'createPhoneOrder'])->name('phone.create');
         Route::post('phone-order', [PosController::class, 'storePhoneOrder'])->name('phone.store');
 
         Route::prefix('orders/{order}')->name('orders.')->group(function () {

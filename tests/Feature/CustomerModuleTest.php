@@ -25,13 +25,12 @@ class CustomerModuleTest extends TestCase
         $cashier = $this->cashier();
 
         $cases = [
-            ['pos.takeaway.store', CustomerSource::WalkIn, '0771111111'],
-            ['pos.phone.store', CustomerSource::Phone, '0772222222'],
+            [fn () => $this->openTakeaway($cashier), CustomerSource::WalkIn, '0771111111'],
+            [fn () => $this->openPhoneOrder($cashier), CustomerSource::Phone, '0772222222'],
         ];
 
-        foreach ($cases as [$route, $expected, $phone]) {
-            $this->actingAs($cashier)->post(route($route));
-            $order = Order::query()->latest('id')->first();
+        foreach ($cases as [$open, $expected, $phone]) {
+            $order = $open();
 
             $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
                 'customer_phone' => $phone,
@@ -45,7 +44,7 @@ class CustomerModuleTest extends TestCase
 
         // And a dine-in table that leaves a number.
         $table = RestaurantTable::factory()->create();
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
         $dineIn = Order::query()->latest('id')->first();
         $this->actingAs($cashier)->post(route('pos.orders.customer', $dineIn), [
             'customer_phone' => '0773333333',
@@ -60,7 +59,7 @@ class CustomerModuleTest extends TestCase
         $cashier = $this->cashier();
 
         foreach (['077 123 4567', '0771234567', '077-123-4567'] as $index => $phone) {
-            $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+            $this->openTakeaway($cashier);
             $order = Order::query()->latest('id')->first();
 
             $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
@@ -80,14 +79,14 @@ class CustomerModuleTest extends TestCase
     {
         $cashier = $this->cashier();
 
-        $this->actingAs($cashier)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($cashier);
         $first = Order::query()->sole();
         $this->actingAs($cashier)->post(route('pos.orders.customer', $first), ['customer_phone' => '0771234567']);
 
         $customer = Customer::query()->sole();
         $this->assertNull($customer->name);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $second = Order::query()->latest('id')->first();
         $this->actingAs($cashier)->post(route('pos.orders.customer', $second), [
             'customer_phone' => '0771234567',
@@ -105,7 +104,7 @@ class CustomerModuleTest extends TestCase
     {
         $cashier = $this->cashier();
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
 
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), ['customer_name' => 'Kamala']);
@@ -197,7 +196,7 @@ class CustomerModuleTest extends TestCase
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 1500]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
             'customer_phone' => '0771234567', 'customer_name' => 'Nimal',
@@ -219,7 +218,7 @@ class CustomerModuleTest extends TestCase
     {
         $cashier = $this->cashier();
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->post(route('pos.orders.customer', $order), [
             'customer_phone' => '0771234567', 'customer_name' => 'Nimal',

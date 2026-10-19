@@ -131,10 +131,12 @@ mysql -e "CREATE DATABASE restro_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unic
 
 **POS** — Touch-first home screen with the three sale types and a live table plan showing free
 and occupied at a glance. Order screen with category tabs, menu search, one-tap quantity
-changes, per-item notes, hold and checkout.
+changes, per-item notes, hold and checkout. The order is created by the first item tapped, not by
+opening the screen, so staff can check a price or search the menu from it without leaving an
+empty order behind.
 
-**Dine in** — Tapping a table opens its running order or starts a new one. The table stays
-occupied while the order is open and frees itself when the order is completed or cancelled.
+**Dine in** — Tapping a table opens its running order or starts a new one. The table is occupied
+from the first item onwards, stays occupied while the order is open and frees itself when the order is completed or cancelled.
 Orders can be moved between tables.
 
 **Phone orders** — Tapping PHONE ORDER goes straight to the order screen, so the food goes down

@@ -23,7 +23,11 @@
             </div>
 
             {{-- The three ways a sale can start. Nothing else competes for
-                 attention at the top of this screen. --}}
+                 attention at the top of this screen.
+
+                 Plain links, not forms: each opens the order screen without
+                 creating anything, and the order is made by the first item
+                 tapped there. Checking the menu from it leaves nothing behind. --}}
             <div class="grid gap-4 sm:grid-cols-3">
                 <a href="#tables"
                    class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-brand-600 p-8
@@ -33,29 +37,23 @@
                     <span class="text-sm font-medium text-brand-100">Pick a table below</span>
                 </a>
 
-                <form action="{{ route('pos.takeaway.store') }}" method="POST">
-                    @csrf
-                    <button type="submit"
-                            class="flex w-full touch-target flex-col items-center justify-center gap-3 rounded-3xl
-                                   bg-amber-500 p-8 text-white shadow-lg transition hover:bg-amber-600 active:scale-[0.98]">
-                        <x-icon name="bag" class="size-12"/>
-                        <span class="text-2xl font-bold tracking-wide">TAKEAWAY</span>
-                        <span class="text-sm font-medium text-amber-50">Walk-in customer</span>
-                    </button>
-                </form>
+                <a href="{{ route('pos.takeaway.create') }}"
+                   class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-amber-500 p-8
+                          text-white shadow-lg transition hover:bg-amber-600 active:scale-[0.98]">
+                    <x-icon name="bag" class="size-12"/>
+                    <span class="text-2xl font-bold tracking-wide">TAKEAWAY</span>
+                    <span class="text-sm font-medium text-amber-50">Walk-in customer</span>
+                </a>
 
                 {{-- Straight into the order screen: the caller reads out their
                      food first, and their number is taken afterwards. --}}
-                <form action="{{ route('pos.phone.store') }}" method="POST">
-                    @csrf
-                    <button type="submit"
-                            class="flex w-full touch-target flex-col items-center justify-center gap-3 rounded-3xl
-                                   bg-violet-600 p-8 text-white shadow-lg transition hover:bg-violet-700 active:scale-[0.98]">
-                        <x-icon name="phone" class="size-12"/>
-                        <span class="text-2xl font-bold tracking-wide">PHONE ORDER</span>
-                        <span class="text-sm font-medium text-violet-100">Customer is calling</span>
-                    </button>
-                </form>
+                <a href="{{ route('pos.phone.create') }}"
+                   class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-violet-600 p-8
+                          text-white shadow-lg transition hover:bg-violet-700 active:scale-[0.98]">
+                    <x-icon name="phone" class="size-12"/>
+                    <span class="text-2xl font-bold tracking-wide">PHONE ORDER</span>
+                    <span class="text-sm font-medium text-violet-100">Customer is calling</span>
+                </a>
             </div>
 
             {{-- Tables. Free and busy have to be tellable apart across a room,
@@ -85,38 +83,35 @@
                         @foreach ($tables as $table)
                             @php($order = $table->activeOrder)
 
-                            <form action="{{ route('pos.tables.select', $table) }}" method="POST">
-                                @csrf
-                                <button type="submit"
-                                        class="flex w-full flex-col items-start gap-2 rounded-3xl border-4 p-5 text-left
-                                               shadow-sm transition active:scale-[0.98]
-                                               {{ $order
-                                                   ? 'border-rose-500 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20'
-                                                   : 'border-emerald-500 bg-white hover:bg-emerald-50 dark:bg-slate-900 dark:hover:bg-emerald-500/10' }}">
-                                    <span class="text-xl font-bold text-slate-900 sm:text-2xl dark:text-white">
-                                        {{ $table->name }}
-                                    </span>
+                            <a href="{{ route('pos.tables.show', $table) }}"
+                               class="flex w-full flex-col items-start gap-2 rounded-3xl border-4 p-5 text-left
+                                      shadow-sm transition active:scale-[0.98]
+                                      {{ $order
+                                          ? 'border-rose-500 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20'
+                                          : 'border-emerald-500 bg-white hover:bg-emerald-50 dark:bg-slate-900 dark:hover:bg-emerald-500/10' }}">
+                                <span class="text-xl font-bold text-slate-900 sm:text-2xl dark:text-white">
+                                    {{ $table->name }}
+                                </span>
 
-                                    <span class="text-base font-bold uppercase tracking-wide
-                                                 {{ $order ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400' }}">
-                                        {{ $order ? 'Occupied' : 'Free' }}
-                                    </span>
+                                <span class="text-base font-bold uppercase tracking-wide
+                                             {{ $order ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400' }}">
+                                    {{ $order ? 'Occupied' : 'Free' }}
+                                </span>
 
-                                    @if ($order)
-                                        <span class="text-sm font-medium text-slate-600 dark:text-slate-300">
-                                            {{ (int) $order->items_count }} {{ Str::plural('item', (int) $order->items_count) }}
-                                            · {{ money($order->total) }}
-                                        </span>
-                                        <span class="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                            {{ $order->created_at->diffForHumans(short: true) }}
-                                        </span>
-                                    @elseif ($table->seats)
-                                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                            {{ $table->seats }} seats
-                                        </span>
-                                    @endif
-                                </button>
-                            </form>
+                                @if ($order)
+                                    <span class="text-sm font-medium text-slate-600 dark:text-slate-300">
+                                        {{ (int) $order->items_count }} {{ Str::plural('item', (int) $order->items_count) }}
+                                        · {{ money($order->total) }}
+                                    </span>
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                        {{ $order->created_at->diffForHumans(short: true) }}
+                                    </span>
+                                @elseif ($table->seats)
+                                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                        {{ $table->seats }} seats
+                                    </span>
+                                @endif
+                            </a>
                         @endforeach
                     </div>
                 @endif

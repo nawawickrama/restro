@@ -14,6 +14,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\RestaurantTable;
 use App\Models\User;
+use Closure;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -79,10 +80,10 @@ class OrderService
     /**
      * Phone takeaway.
      *
-     * The order opens empty, because on a real call the customer reads out
-     * their food long before they give a number. Contact details are captured
-     * afterwards by {@see self::setCustomer()}, and business rule 13 is
-     * enforced at checkout instead of at creation.
+     * The order opens without contact details, because on a real call the
+     * customer reads out their food long before they give a number. Those are
+     * captured afterwards by {@see self::setCustomer()}, and business rule 13
+     * is enforced at checkout instead of at creation.
      */
     public function startPhoneOrder(User $user): Order
     {
@@ -91,6 +92,29 @@ class OrderService
             'user_id' => $user->id,
             'fulfillment_status' => FulfillmentStatus::Pending,
         ]));
+    }
+
+    /**
+     * Open an order with its first item already on it.
+     *
+     * This is how the POS opens every order. Started on its own, an order
+     * exists before anything is on it, and a cashier who opened the order
+     * screen only to look something up on the menu left an empty one behind
+     * each time — holding an order number and, at a table, the table.
+     * Opening and adding share a transaction, so a first item that cannot be
+     * sold leaves no order behind either.
+     *
+     * @param  Closure(): Order  $start  one of the start methods above
+     */
+    public function startWith(Closure $start, MenuItem $first, int $quantity = 1, ?string $note = null): Order
+    {
+        return DB::transaction(function () use ($start, $first, $quantity, $note): Order {
+            $order = $start();
+
+            $this->addItem($order, $first, $quantity, $note);
+
+            return $order;
+        });
     }
 
     /**

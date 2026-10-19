@@ -30,7 +30,7 @@ class ScreensRenderTest extends TestCase
 
         $this->actingAs($admin)->get(route('pos.home'))->assertOk();
 
-        $this->actingAs($admin)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $admin);
         $order = Order::query()->sole();
 
         // The order screen carries the whole menu and the order as JSON.
@@ -53,7 +53,7 @@ class ScreensRenderTest extends TestCase
         $admin = $this->admin();
         MenuItem::factory()->create();
 
-        $this->actingAs($admin)->post(route('pos.phone.store'));
+        $this->openPhoneOrder($admin);
         $order = Order::query()->sole();
 
         $this->actingAs($admin)->get(route('pos.orders.show', $order))
@@ -104,9 +104,9 @@ class ScreensRenderTest extends TestCase
         $item = MenuItem::factory()->create(['price' => 500]);
         $table = RestaurantTable::factory()->create();
 
-        $this->actingAs($admin)->post(route('pos.tables.select', $table));
-        $this->actingAs($admin)->post(route('pos.phone.store'));
-        $this->actingAs($admin)->post(route('pos.takeaway.store'));
+        $this->openTable($table, $admin);
+        $this->openPhoneOrder($admin);
+        $this->openTakeaway($admin);
 
         $phoneOrder = Order::query()->where('type', 'phone_takeaway')->sole();
         $this->actingAs($admin)->post(route('pos.orders.customer', $phoneOrder), [
@@ -128,7 +128,7 @@ class ScreensRenderTest extends TestCase
         RestaurantTable::factory()->create(['name' => 'Table A']);
         $busy = RestaurantTable::factory()->create(['name' => 'Table B']);
 
-        $this->actingAs($admin)->post(route('pos.tables.select', $busy));
+        $this->openTable($busy, $admin);
 
         $this->actingAs($admin)->get(route('pos.home'))
             ->assertOk()

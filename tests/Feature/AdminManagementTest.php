@@ -52,7 +52,7 @@ class AdminManagementTest extends TestCase
         $admin = $this->admin();
         $item = MenuItem::factory()->create(['price' => 500]);
 
-        $this->actingAs($cashier)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($cashier);
         $order = Order::query()->sole();
         $this->actingAs($cashier)->postJson(route('pos.orders.items.store', $order), ['menu_item_id' => $item->id]);
 
@@ -192,7 +192,7 @@ class AdminManagementTest extends TestCase
         $admin = $this->admin();
         $table = RestaurantTable::factory()->create();
 
-        $this->actingAs($cashier)->post(route('pos.tables.select', $table));
+        $this->openTable($table, $cashier);
 
         $this->actingAs($admin)->delete(route('tables.destroy', $table))->assertSessionHas('error');
 
@@ -260,7 +260,7 @@ class AdminManagementTest extends TestCase
         $item = MenuItem::factory()->create(['price' => 1000]);
 
         // One completed order, one left open.
-        $this->actingAs($admin)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($admin);
         $paid = Order::query()->latest('id')->first();
         $this->actingAs($admin)->postJson(route('pos.orders.items.store', $paid), ['menu_item_id' => $item->id]);
         $this->actingAs($admin)->post(route('pos.orders.checkout.store', $paid), [
@@ -268,7 +268,7 @@ class AdminManagementTest extends TestCase
             'tendered' => 1000,
         ]);
 
-        $this->actingAs($admin)->post(route('pos.takeaway.store'));
+        $this->openTakeaway($admin);
         $open = Order::query()->latest('id')->first();
         $this->actingAs($admin)->postJson(route('pos.orders.items.store', $open), ['menu_item_id' => $item->id]);
 
