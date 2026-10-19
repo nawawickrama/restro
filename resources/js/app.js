@@ -4,6 +4,7 @@ import cateringSheet from './catering-sheet';
 import customerDisplay from './customer-display';
 import customerDisplayLauncher from './customer-display-launcher';
 import openOrders from './open-orders';
+import posMenu from './pos-menu';
 import posOrder from './pos-order';
 import { startPublisher } from './display-channel';
 
@@ -24,6 +25,7 @@ Alpine.data('themeToggle', () => ({
 }));
 
 Alpine.data('posOrder', posOrder);
+Alpine.data('posMenu', posMenu);
 Alpine.data('openOrders', openOrders);
 Alpine.data('customerDisplay', customerDisplay);
 Alpine.data('cateringSheet', cateringSheet);

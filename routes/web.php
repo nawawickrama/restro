@@ -55,6 +55,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     // ---------------------------------------------------------------- POS ---
     Route::middleware('permission:'.Permissions::VIEW_POS)->prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [PosController::class, 'home'])->name('home');
+        Route::get('menu', [PosController::class, 'menu'])->name('menu');
 
         // The second screen. Opened once per shift and left running; it is fed
         // by the cashier's window rather than by this route.

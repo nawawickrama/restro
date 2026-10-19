@@ -133,7 +133,8 @@ mysql -e "CREATE DATABASE restro_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unic
 and occupied at a glance. Order screen with category tabs, menu search, one-tap quantity
 changes, per-item notes, hold and checkout. The order is created by the first item tapped, not by
 opening the screen, so staff can check a price or search the menu from it without leaving an
-empty order behind.
+empty order behind. For a price or "do you have…?" at the counter, the **MENU** bar under the
+sale types opens the menu on its own — search, categories, prices and descriptions, read-only.
 
 **Dine in** — Tapping a table opens its running order or starts a new one. The table is occupied
 from the first item onwards, stays occupied while the order is open and frees itself when the order is completed or cancelled.

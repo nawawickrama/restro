@@ -22,37 +22,56 @@
                 <x-flash/>
             </div>
 
-            {{-- The three ways a sale can start. Nothing else competes for
-                 attention at the top of this screen.
+            <div class="space-y-4">
+                {{-- The three ways a sale can start. Nothing else shares their
+                     row at the top of this screen.
 
-                 Plain links, not forms: each opens the order screen without
-                 creating anything, and the order is made by the first item
-                 tapped there. Checking the menu from it leaves nothing behind. --}}
-            <div class="grid gap-4 sm:grid-cols-3">
-                <a href="#tables"
-                   class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-brand-600 p-8
-                          text-white shadow-lg transition hover:bg-brand-700 active:scale-[0.98]">
-                    <x-icon name="table" class="size-12"/>
-                    <span class="text-2xl font-bold tracking-wide">DINE IN</span>
-                    <span class="text-sm font-medium text-brand-100">Pick a table below</span>
-                </a>
+                     Plain links, not forms: each opens the order screen without
+                     creating anything, and the order is made by the first item
+                     tapped there. Checking the menu from it leaves nothing behind. --}}
+                <div class="grid gap-4 sm:grid-cols-3">
+                    <a href="#tables"
+                       class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-brand-600 p-8
+                              text-white shadow-lg transition hover:bg-brand-700 active:scale-[0.98]">
+                        <x-icon name="table" class="size-12"/>
+                        <span class="text-2xl font-bold tracking-wide">DINE IN</span>
+                        <span class="text-sm font-medium text-brand-100">Pick a table below</span>
+                    </a>
 
-                <a href="{{ route('pos.takeaway.create') }}"
-                   class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-amber-500 p-8
-                          text-white shadow-lg transition hover:bg-amber-600 active:scale-[0.98]">
-                    <x-icon name="bag" class="size-12"/>
-                    <span class="text-2xl font-bold tracking-wide">TAKEAWAY</span>
-                    <span class="text-sm font-medium text-amber-50">Walk-in customer</span>
-                </a>
+                    <a href="{{ route('pos.takeaway.create') }}"
+                       class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-amber-500 p-8
+                              text-white shadow-lg transition hover:bg-amber-600 active:scale-[0.98]">
+                        <x-icon name="bag" class="size-12"/>
+                        <span class="text-2xl font-bold tracking-wide">TAKEAWAY</span>
+                        <span class="text-sm font-medium text-amber-50">Walk-in customer</span>
+                    </a>
 
-                {{-- Straight into the order screen: the caller reads out their
-                     food first, and their number is taken afterwards. --}}
-                <a href="{{ route('pos.phone.create') }}"
-                   class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-violet-600 p-8
-                          text-white shadow-lg transition hover:bg-violet-700 active:scale-[0.98]">
-                    <x-icon name="phone" class="size-12"/>
-                    <span class="text-2xl font-bold tracking-wide">PHONE ORDER</span>
-                    <span class="text-sm font-medium text-violet-100">Customer is calling</span>
+                    {{-- Straight into the order screen: the caller reads out their
+                         food first, and their number is taken afterwards. --}}
+                    <a href="{{ route('pos.phone.create') }}"
+                       class="flex touch-target flex-col items-center justify-center gap-3 rounded-3xl bg-violet-600 p-8
+                              text-white shadow-lg transition hover:bg-violet-700 active:scale-[0.98]">
+                        <x-icon name="phone" class="size-12"/>
+                        <span class="text-2xl font-bold tracking-wide">PHONE ORDER</span>
+                        <span class="text-sm font-medium text-violet-100">Customer is calling</span>
+                    </a>
+                </div>
+
+                {{-- Checking the menu is not a sale, so it sits apart from the
+                     three ways one starts: as easy to reach, a different shape,
+                     and nothing is created by tapping it. --}}
+                <a href="{{ route('pos.menu') }}"
+                   class="flex touch-target items-center gap-4 rounded-3xl border-2 border-slate-300 bg-white px-6 py-4
+                          shadow-sm transition hover:border-brand-400 hover:bg-slate-50 active:scale-[0.99]
+                          dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800">
+                    <x-icon name="menu-book" class="size-10 shrink-0 text-brand-600 dark:text-brand-400"/>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-2xl font-bold tracking-wide text-slate-900 dark:text-white">MENU</span>
+                        <span class="block text-sm font-medium text-slate-500 dark:text-slate-400">
+                            Check prices and what's on, without starting an order
+                        </span>
+                    </span>
+                    <x-icon name="search" class="size-7 shrink-0 text-slate-400"/>
                 </a>
             </div>
 

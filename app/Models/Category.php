@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,6 +34,25 @@ class Category extends Model
     public function activeMenuItems(): HasMany
     {
         return $this->menuItems()->where('is_active', true)->orderBy('sort_order')->orderBy('name');
+    }
+
+    /**
+     * The menu as it stands: every active category with something on sale in
+     * it, in menu order, with those items loaded. The order screen, the POS
+     * menu and the public page all show exactly this.
+     *
+     * @return Collection<int, self>
+     */
+    public static function onTheMenu(): Collection
+    {
+        return static::query()
+            ->active()
+            ->ordered()
+            ->with('activeMenuItems')
+            ->get()
+            // A category with nothing sellable in it is not worth a heading.
+            ->filter(fn (self $category) => $category->activeMenuItems->isNotEmpty())
+            ->values();
     }
 
     /** @param Builder<$this> $query */

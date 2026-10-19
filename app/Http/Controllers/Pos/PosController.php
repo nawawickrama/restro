@@ -7,6 +7,7 @@ use App\Enums\OrderType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderCustomerRequest;
 use App\Http\Requests\StoreOrderItemRequest;
+use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\RestaurantTable;
@@ -55,6 +56,17 @@ class PosController extends Controller
             'openOrders' => $openOrders,
             'openOrdersPayload' => $this->searchableOrders($openOrders),
         ]);
+    }
+
+    /**
+     * The menu on its own, for a price or "do you have…?" at the counter.
+     *
+     * Read-only and a screen of its own, so checking the menu is plainly not
+     * the start of a sale: nothing here creates an order.
+     */
+    public function menu(): View
+    {
+        return view('pos.menu', ['categories' => Category::onTheMenu()]);
     }
 
     /**

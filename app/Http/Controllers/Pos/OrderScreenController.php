@@ -181,13 +181,7 @@ class OrderScreenController extends Controller
      */
     private function screen(Order $order, ?string $startUrl = null): View
     {
-        $categories = Category::query()
-            ->active()
-            ->ordered()
-            ->with(['activeMenuItems'])
-            ->get()
-            ->filter(fn (Category $category) => $category->activeMenuItems->isNotEmpty())
-            ->values();
+        $categories = Category::onTheMenu();
 
         // Only moving the order needs the table plan, and an order that does
         // not exist yet has nowhere to be moved from.

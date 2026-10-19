@@ -21,15 +21,6 @@ class MenuController extends Controller
 {
     public function __invoke(): View
     {
-        $categories = Category::query()
-            ->active()
-            ->ordered()
-            ->with('activeMenuItems')
-            ->get()
-            // A category with nothing sellable in it is not worth a heading.
-            ->filter(fn (Category $category) => $category->activeMenuItems->isNotEmpty())
-            ->values();
-
-        return view('site.menu', compact('categories'));
+        return view('site.menu', ['categories' => Category::onTheMenu()]);
     }
 }

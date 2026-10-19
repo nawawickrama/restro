@@ -1,3 +1,5 @@
+import { visibleItems } from './menu-items';
+
 /**
  * The order screen.
  *
@@ -81,17 +83,7 @@ export default function posOrder({ order, categories, endpoints, currency }) {
         },
 
         get items() {
-            const term = this.search.trim().toLowerCase();
-
-            if (term.length) {
-                return this.categories
-                    .flatMap((category) => category.items)
-                    .filter((item) => item.name.toLowerCase().includes(term));
-            }
-
-            const category = this.categories.find((c) => c.id === this.activeCategory);
-
-            return category ? category.items : [];
+            return visibleItems(this.categories, this.activeCategory, this.search);
         },
 
         get isEmpty() {
