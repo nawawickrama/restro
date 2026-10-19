@@ -30,7 +30,8 @@ class BrandingTest extends TestCase
         $this->actingAs($admin)->get(route('pos.home'))->assertOk()->assertSee('images/logo.png');
     }
 
-    public function test_the_receipt_prints_the_logo_and_the_software_credit(): void
+    /** The logo stays off the paper: on a till roll it cost more than it said. */
+    public function test_the_receipt_prints_the_software_credit_but_no_logo(): void
     {
         $cashier = $this->cashier();
         $item = MenuItem::factory()->create(['price' => 400]);
@@ -45,8 +46,7 @@ class BrandingTest extends TestCase
 
         $this->actingAs($cashier)->get(route('orders.receipt', $order))
             ->assertOk()
-            ->assertSee('images/logo.png')
-            ->assertSee('grayscale(1)', false)      // flattened for a thermal head
+            ->assertDontSee('images/logo')
             ->assertSee('Software By - Nawawickrama (0779389533)');
     }
 

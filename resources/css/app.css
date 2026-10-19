@@ -255,6 +255,7 @@
     }
 
     .print-sheet {
+        page: receipt;
         margin: 0 !important;
         padding: 0 !important;
         box-shadow: none !important;
@@ -292,5 +293,12 @@
 
     @page {
         margin: 6mm;
+    }
+
+    /* A till roll is paid for by the length, so a slip sits close to the cut
+       instead of keeping a sheet of paper's 6mm above and below. 4mm at the
+       sides is the edge an 80mm head cannot print anyway. */
+    @page receipt {
+        margin: 2mm 4mm;
     }
 }

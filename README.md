@@ -153,8 +153,10 @@ line. See [Setting up the customer display](#setting-up-the-customer-display).
 reference. Nothing completes without a payment that covers the total.
 
 **Receipts** — 80mm printable, auto-printed straight after checkout, reprintable from history.
-Each one prints the kitchen its own copy on the same job: items, quantities, prices and the time,
-plus the order number and table so the food can be matched to a bill. No logo, no totals.
+Set compact to save roll: no logo, receipt-sized type, two details to a line, and nothing printed
+twice (no subtotal unless a discount or tax sits under it, no unit price on a single item). Each
+one prints the kitchen its own copy on the same job: items, quantities, prices and the time, plus
+the order number and table so the food can be matched to a bill. No logo, no totals.
 
 **Deleting an order** — An order can be erased outright from its detail page, which is different
 from cancelling it: a cancelled order stays on the books as cancelled, while a deleted one leaves

@@ -65,110 +65,93 @@
     </div>
 @endif
 
-{{-- The receipt itself: 80mm thermal width, monospaced figures, no colour. --}}
-<div class="print-sheet mx-auto max-w-md bg-white p-6 text-slate-900 shadow-lg print:shadow-none">
+{{-- The receipt itself: 80mm thermal width, monospaced figures, no colour.
+     Set at the size of a thermal head's own font and spaced tight, because a
+     till roll is paid for by the length and every slip is printed twice. --}}
+<div class="print-sheet mx-auto max-w-md bg-white p-6 text-xs leading-snug text-slate-900 shadow-lg print:shadow-none">
+    {{-- No logo: on a till roll it took more paper than anything else on the
+         slip, and the name below says the same thing in one line. --}}
     <header class="text-center">
-        {{-- A thermal head is one colour at low resolution, so the logo is
-             flattened to grey and pushed to high contrast rather than left to
-             dither into mud. Drop a black-and-white `logo-receipt.png` beside
-             it to override this with artwork made for paper. --}}
-        @php($receiptLogo = file_exists(public_path('images/logo-receipt.png')) ? 'images/logo-receipt.png' : 'images/logo.png')
+        <h1 class="text-base font-bold uppercase leading-tight">{{ $settings->restaurantName() }}</h1>
 
-        <img src="{{ asset($receiptLogo) }}"
-             alt="{{ $settings->restaurantName() }}"
-             class="mx-auto mb-3 w-44 max-w-full"
-             style="filter: grayscale(1) contrast(1.35); print-color-adjust: exact; -webkit-print-color-adjust: exact;">
+        @php
+            $contact = array_filter([
+                $settings->get('restaurant_address'),
+                $settings->get('restaurant_phone') ? 'Tel: '.$settings->get('restaurant_phone') : null,
+            ]);
+        @endphp
 
-        <h1 class="text-xl font-bold uppercase">{{ $settings->restaurantName() }}</h1>
-
-        @if ($settings->get('restaurant_address'))
-            <p class="mt-1 text-sm">{{ $settings->get('restaurant_address') }}</p>
-        @endif
-
-        @if ($settings->get('restaurant_phone'))
-            <p class="text-sm">Tel: {{ $settings->get('restaurant_phone') }}</p>
+        @if ($contact)
+            <p>{{ implode(' · ', $contact) }}</p>
         @endif
     </header>
 
-    <div class="my-4 border-t border-dashed border-slate-400"></div>
+    <div class="my-1.5 border-t border-dashed border-slate-400"></div>
 
-    <dl class="space-y-1 text-sm">
-        <div class="flex justify-between">
-            <dt class="font-semibold">Order</dt>
-            <dd class="font-mono">{{ $order->order_number }}</dd>
+    {{-- Two facts to a line rather than one. Each wraps onto its own line if a
+         long name will not fit beside the other. --}}
+    <div>
+        <div class="flex flex-wrap justify-between gap-x-2">
+            <span class="font-mono font-semibold">{{ $order->order_number }}</span>
+            <span>{{ ($order->completed_at ?? $order->created_at)->format('d M Y, g:i A') }}</span>
         </div>
-        <div class="flex justify-between">
-            <dt class="font-semibold">Date</dt>
-            <dd>{{ ($order->completed_at ?? $order->created_at)->format('d M Y, g:i A') }}</dd>
+        <div class="flex flex-wrap justify-between gap-x-2">
+            <span>{{ $order->type->label() }}@if ($order->table) · {{ $order->table->name }}@endif</span>
+            <span>Served by {{ $order->user->name }}</span>
         </div>
-        <div class="flex justify-between">
-            <dt class="font-semibold">Type</dt>
-            <dd>{{ $order->type->label() }}</dd>
-        </div>
-
-        @if ($order->table)
-            <div class="flex justify-between">
-                <dt class="font-semibold">Table</dt>
-                <dd>{{ $order->table->name }}</dd>
-            </div>
-        @endif
 
         {{-- Either detail can stand alone: a caller may give only a number, a
              walk-in only a name. --}}
-        @if ($order->customer_name)
-            <div class="flex justify-between">
-                <dt class="font-semibold">Customer</dt>
-                <dd>{{ $order->customer_name }}</dd>
+        @if ($order->customer_name || $order->customer_phone)
+            <div class="flex flex-wrap justify-between gap-x-2">
+                <span>{{ $order->customer_name }}</span>
+                <span class="font-mono">{{ $order->customer_phone }}</span>
             </div>
         @endif
+    </div>
 
-        @if ($order->customer_phone)
-            <div class="flex justify-between">
-                <dt class="font-semibold">Mobile</dt>
-                <dd class="font-mono">{{ $order->customer_phone }}</dd>
-            </div>
-        @endif
+    <div class="my-1.5 border-t border-dashed border-slate-400"></div>
 
-        <div class="flex justify-between">
-            <dt class="font-semibold">Served by</dt>
-            <dd>{{ $order->user->name }}</dd>
-        </div>
-    </dl>
-
-    <div class="my-4 border-t border-dashed border-slate-400"></div>
-
-    <table class="w-full text-sm">
+    <table class="w-full">
         <thead>
             <tr class="border-b border-slate-300 text-left">
-                <th class="pb-1 font-semibold">Item</th>
-                <th class="pb-1 text-center font-semibold">Qty</th>
-                <th class="pb-1 text-right font-semibold">Amount</th>
+                <th class="font-semibold">Item</th>
+                <th class="px-1 text-center font-semibold">Qty</th>
+                <th class="text-right font-semibold">Amount</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($order->items as $item)
                 <tr class="align-top">
-                    <td class="py-1 pr-2">
+                    <td class="pr-2">
                         {{ $item->name }}
-                        <span class="block text-xs text-slate-600">@ {{ money($item->unit_price) }}</span>
+                        {{-- With one of something the amount is the unit price,
+                             so a second line would only repeat it. --}}
+                        @if ($item->quantity > 1)
+                            <span class="block text-slate-600">@ {{ money($item->unit_price) }}</span>
+                        @endif
                         @if ($item->note)
-                            <span class="block text-xs italic text-slate-600">{{ $item->note }}</span>
+                            <span class="block italic text-slate-600">{{ $item->note }}</span>
                         @endif
                     </td>
-                    <td class="py-1 text-center font-mono">{{ $item->quantity }}</td>
-                    <td class="py-1 text-right font-mono">{{ number_format((float) $item->line_total, 2) }}</td>
+                    <td class="px-1 text-center font-mono">{{ $item->quantity }}</td>
+                    <td class="text-right font-mono">{{ number_format((float) $item->line_total, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <div class="my-3 border-t border-dashed border-slate-400"></div>
+    <div class="my-1.5 border-t border-dashed border-slate-400"></div>
 
-    <dl class="space-y-1 text-sm">
-        <div class="flex justify-between">
-            <dt>Subtotal</dt>
-            <dd class="font-mono">{{ money($order->subtotal) }}</dd>
-        </div>
+    <dl>
+        {{-- With nothing taken off or added, the subtotal is the total and one
+             line says it. --}}
+        @if ((float) $order->discount_amount > 0 || (float) $order->tax_amount > 0)
+            <div class="flex justify-between">
+                <dt>Subtotal</dt>
+                <dd class="font-mono">{{ money($order->subtotal) }}</dd>
+            </div>
+        @endif
 
         @if ((float) $order->discount_amount > 0)
             <div class="flex justify-between">
@@ -184,24 +167,22 @@
             </div>
         @endif
 
-        <div class="flex justify-between border-t border-slate-400 pt-2 text-lg font-bold">
+        <div class="flex justify-between text-sm font-bold">
             <dt>Total</dt>
             <dd class="font-mono">{{ money($order->total) }}</dd>
         </div>
     </dl>
 
     @forelse ($order->payments as $payment)
-        <div class="mt-3 space-y-1 text-sm">
+        {{-- What was handed over sits on the method's own line: "Paid by" and
+             "Cash received" were two lines saying one thing. --}}
+        <dl class="mt-1">
             <div class="flex justify-between">
-                <dt class="font-semibold">Paid by</dt>
-                <dd>{{ $payment->method->label() }}</dd>
+                <dt>Paid by {{ $payment->method->label() }}</dt>
+                <dd class="font-mono">{{ money($payment->tendered ?? $payment->amount) }}</dd>
             </div>
 
-            @if ($payment->tendered !== null)
-                <div class="flex justify-between">
-                    <dt>Cash received</dt>
-                    <dd class="font-mono">{{ money($payment->tendered) }}</dd>
-                </div>
+            @if ((float) $payment->change_amount > 0)
                 <div class="flex justify-between font-semibold">
                     <dt>Change</dt>
                     <dd class="font-mono">{{ money($payment->change_amount) }}</dd>
@@ -214,30 +195,38 @@
                     <dd class="font-mono">{{ $payment->reference }}</dd>
                 </div>
             @endif
-        </div>
+        </dl>
     @empty
-        <p class="mt-3 text-center text-sm font-bold uppercase">Unpaid</p>
+        <p class="mt-1 text-center font-bold uppercase">Unpaid</p>
     @endforelse
 
     @if ($order->status === App\Enums\OrderStatus::Cancelled)
-        <p class="mt-3 text-center text-sm font-bold uppercase">*** Cancelled ***</p>
+        <p class="mt-1 text-center font-bold uppercase">*** Cancelled ***</p>
     @endif
 
-    <div class="my-4 border-t border-dashed border-slate-400"></div>
+    @php
+        // Straight off checkout the print time is the order time again; it only
+        // says something new when a bill is printed later.
+        $printedAt = $justCompleted ? null : now()->format('d M Y, g:i A');
+    @endphp
 
-    <footer class="text-center text-sm">
-        @if ($settings->get('receipt_footer'))
-            <p>{{ $settings->get('receipt_footer') }}</p>
-        @endif
+    @if ($settings->get('receipt_footer') || $printedAt || $settings->get('software_credit'))
+        <div class="my-1.5 border-t border-dashed border-slate-400"></div>
 
-        <p class="mt-2 text-xs text-slate-600">{{ now()->format('d M Y, g:i A') }}</p>
+        <footer class="text-center">
+            @if ($settings->get('receipt_footer'))
+                <p>{{ $settings->get('receipt_footer') }}</p>
+            @endif
 
-        @if ($settings->get('software_credit'))
-            <p class="mt-2 border-t border-dashed border-slate-300 pt-2 text-xs text-slate-600">
-                {{ $settings->get('software_credit') }}
-            </p>
-        @endif
-    </footer>
+            @if ($printedAt)
+                <p class="text-slate-600">Printed {{ $printedAt }}</p>
+            @endif
+
+            @if ($settings->get('software_credit'))
+                <p class="text-[10px] text-slate-600">{{ $settings->get('software_credit') }}</p>
+            @endif
+        </footer>
+    @endif
 </div>
 
 {{-- The kitchen's copy, on the same print job as the customer's bill so one
@@ -246,45 +235,43 @@
      paper. Deliberately plain — what to cook, how many, and when it was rung
      up. No logo, no address, no totals, nothing to read past. --}}
 <div class="print-sheet kitchen-ticket mx-auto mt-6 max-w-md bg-white p-6 text-slate-900 shadow-lg print:shadow-none">
-    <h2 class="text-center text-lg font-bold uppercase tracking-widest">Kitchen</h2>
-
-    <div class="my-3 border-t border-dashed border-slate-400"></div>
-
     {{-- The kitchen needs to match the food to an order, so the number and the
          place it is going stay on. Everything else about the sale does not. --}}
-    <p class="text-center font-mono text-base font-bold">{{ $order->order_number }}</p>
+    <div class="flex flex-wrap items-baseline justify-between gap-x-2 text-sm font-bold">
+        <h2 class="uppercase tracking-widest">Kitchen</h2>
+        <p class="font-mono">{{ $order->order_number }}</p>
+    </div>
 
-    <p class="text-center text-sm font-semibold">
-        {{ $order->type->label() }}@if ($order->table) · {{ $order->table->name }}@endif
-    </p>
+    <div class="flex flex-wrap justify-between gap-x-2 text-xs leading-snug">
+        <p class="font-semibold">
+            {{ $order->type->label() }}@if ($order->table) · {{ $order->table->name }}@endif
+        </p>
+        <p>{{ ($order->completed_at ?? $order->created_at)->format('d M Y, g:i A') }}</p>
+    </div>
 
-    <p class="text-center text-sm">
-        {{ ($order->completed_at ?? $order->created_at)->format('d M Y, g:i A') }}
-    </p>
+    <div class="my-1.5 border-t border-dashed border-slate-400"></div>
 
-    <div class="my-3 border-t border-dashed border-slate-400"></div>
-
-    <table class="w-full text-base">
+    <table class="w-full text-sm leading-snug">
         <tbody>
             @foreach ($order->items as $item)
                 <tr class="align-top">
-                    <td class="py-1 pr-2 text-right font-mono font-bold">{{ $item->quantity }}</td>
-                    <td class="py-1 pr-2 font-semibold">
+                    <td class="py-0.5 pr-2 text-right font-mono font-bold">{{ $item->quantity }}</td>
+                    <td class="py-0.5 pr-2 font-semibold">
                         {{ $item->name }}
                         {{-- A note is an instruction to the cook, so it belongs
                              here more than anywhere else on the roll. --}}
                         @if ($item->note)
-                            <span class="block text-sm font-normal italic">{{ $item->note }}</span>
+                            <span class="block text-xs font-normal italic">{{ $item->note }}</span>
                         @endif
                     </td>
-                    <td class="py-1 text-right font-mono">{{ number_format((float) $item->line_total, 2) }}</td>
+                    <td class="py-0.5 text-right font-mono">{{ number_format((float) $item->line_total, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
     @if ($order->status === App\Enums\OrderStatus::Cancelled)
-        <p class="mt-3 text-center text-base font-bold uppercase">*** Cancelled — do not cook ***</p>
+        <p class="mt-1.5 text-center text-sm font-bold uppercase">*** Cancelled — do not cook ***</p>
     @endif
 </div>
 
